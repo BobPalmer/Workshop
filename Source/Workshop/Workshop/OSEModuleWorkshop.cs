@@ -15,6 +15,8 @@
 
     public class OseModuleWorkshop : PartModule
 	{
+        private const double kBackgroundProcessInterval = 3600f;
+
         private static Version modVersion = Assembly.GetExecutingAssembly().GetName().Version;
 
         private WorkshopItem[] _availableItems;
@@ -55,7 +57,10 @@
 		[KSPField(isPersistant = true)]
 		public float progress;
 
-		[KSPField]
+        [KSPField(isPersistant = true)]
+        public double lastUpdateTime;
+
+        [KSPField]
 		public bool Animate = false;
 
 		[KSPField]
@@ -64,7 +69,10 @@
 		[KSPField]
 		public string UpkeepResource = "ElectricCharge";
 
-		[KSPField]
+        [KSPField]
+        public float UpkeepAmount = 1.0f;
+
+        [KSPField]
 		public int MinimumCrew = 2;
 
 		[KSPField]
@@ -82,13 +90,20 @@
         [KSPField]
         public string WorkAnimationName = "work";
 
-		protected float adjustedProductivity = 1.0f;
+        [KSPField(isPersistant = true)]
+        public string KACAlarmID = string.Empty;
+        KACWrapper.KACAPI.KACAlarm kacAlarm = null;
+        int kacAlarmIndex = -1;
+
+        protected float adjustedProductivity = 1.0f;
 
 		private readonly Texture2D _pauseTexture;
 		private readonly Texture2D _playTexture;
 		private readonly Texture2D _binTexture;
 
-        [KSPEvent(guiName = "Open Workbench", guiActive = true, guiActiveEditor = false)]
+        protected Recipe workshopRecipe;
+
+        [KSPEvent(guiName = "Open OSE Workbench", guiActive = true, guiActiveEditor = false)]
 		public void ContextMenuOpenWorkbench()
 		{
 			if (_showGui)
@@ -140,19 +155,154 @@
 
         public override void OnStart(StartState state)
 		{
-			if (HighLogic.LoadedSceneIsFlight && WorkshopSettings.IsKISAvailable)
+            //Init the KAC Wrapper. KAC Wrapper courtey of TriggerAu
+            KACWrapper.InitKACWrapper();
+            if (KACWrapper.APIReady)
+            {
+                KACWrapper.KAC.onAlarmStateChanged += KAC_onAlarmStateChanged;
+            }
+
+            if (HighLogic.LoadedSceneIsFlight && WorkshopSettings.IsKISAvailable)
 			{
                 WorkshopUtils.Log("KIS is available - Initialize Workshop");
 				SetupAnimations();
 				LoadMaxVolume();
 				LoadFilters();
-				GameEvents.onVesselChange.Add(OnVesselChange);
+                if (lastUpdateTime == 0)
+                    lastUpdateTime = Planetarium.GetUniversalTime();
+                GameEvents.onVesselChange.Add(OnVesselChange);
 			}
 
 			base.OnStart(state);
 		}
 
-		public override void OnLoad(ConfigNode node)
+        void KAC_onAlarmStateChanged(KACWrapper.KACAPI.AlarmStateChangedEventArgs args)
+        {
+
+        }
+
+        void setKACAlarm(double totalPrintTime)
+        {
+            if (!KACWrapper.AssemblyExists)
+                return;
+            if (!KACWrapper.APIReady)
+                return;
+
+            //Delete the alarm if it exists
+            if (!string.IsNullOrEmpty(KACAlarmID))
+                KACWrapper.KAC.DeleteAlarm(KACAlarmID);
+
+            //Get the start time
+            double startTime = Planetarium.GetUniversalTime();
+
+            //Now set the alarm
+            double buildTimeSeconds = Planetarium.GetUniversalTime() + totalPrintTime;
+            KACAlarmID = KACWrapper.KAC.CreateAlarm(KACWrapper.KACAPI.AlarmTypeEnum.Raw, "Print job completed", buildTimeSeconds);
+            kacAlarm = getKACAlarm();
+            if (kacAlarm != null)
+            {
+                kacAlarm.AlarmMargin = 5.0f;
+                kacAlarm.Notes = this.part.vessel.vesselName + " completed print job.";
+                KACWrapper.KAC.Alarms[kacAlarmIndex] = kacAlarm;
+            }
+        }
+
+        KACWrapper.KACAPI.KACAlarm getKACAlarm()
+        {
+            kacAlarmIndex = -1;
+            if (KACWrapper.AssemblyExists && KACWrapper.APIReady && !string.IsNullOrEmpty(KACAlarmID))
+            {
+                int totalAlarms = KACWrapper.KAC.Alarms.Count;
+                for (int index = 0; index < totalAlarms; index++)
+                {
+                    if (KACWrapper.KAC.Alarms[index].ID == KACAlarmID)
+                    {
+                        kacAlarmIndex = index;
+                        return KACWrapper.KAC.Alarms[index];
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        void updateKACAlarm()
+        {
+            if (!WorkshopOptions.EnableKACIntegration)
+                return;
+            if (!KACWrapper.AssemblyExists)
+                return;
+            if (!KACWrapper.APIReady)
+                return;
+            if (_queue.Count == 0 && _processedBlueprint == null)
+            {
+                deleteKACAlarm();
+                return;
+            }
+
+            //Calculate total print time.
+            double totalPrintTime = 0;
+            int totalItems = _queue.Count;
+            for (int index = 0; index < totalItems; index++)
+            {
+                totalPrintTime += _queue[index].PartBlueprint.GetBuildTime(adjustedProductivity);
+            }
+            if (_processedBlueprint != null)
+                totalPrintTime += _processedBlueprint.GetBuildTime(adjustedProductivity);
+
+            //Create the alarm if needed.
+            if (string.IsNullOrEmpty(KACAlarmID))
+            {
+                setKACAlarm(totalPrintTime);
+            }
+            else
+            {
+                //Find the alarm if needed and then update it
+                if (kacAlarm == null)
+                {
+                    int totalAlarms = KACWrapper.KAC.Alarms.Count;
+                    for (int index = 0; index < totalAlarms; index++)
+                    {
+                        kacAlarm = KACWrapper.KAC.Alarms[index];
+                        if (KACWrapper.KAC.Alarms[index].ID == KACAlarmID)
+                        {
+                            kacAlarm.AlarmTime = Planetarium.GetUniversalTime() + totalPrintTime;
+                            KACWrapper.KAC.Alarms[index] = kacAlarm;
+                            kacAlarmIndex = index;
+                            return;
+                        }
+                    }
+                }
+
+                //Update the alarm
+                else
+                {
+                    kacAlarm.AlarmTime = Planetarium.GetUniversalTime() + totalPrintTime;
+                    KACWrapper.KAC.Alarms[kacAlarmIndex] = kacAlarm;
+                }
+            }
+        }
+        
+        void deleteKACAlarm()
+        {
+            KACAlarmID = string.Empty;
+            kacAlarm = null;
+
+            if (KACWrapper.AssemblyExists && KACWrapper.APIReady && !string.IsNullOrEmpty(KACAlarmID))
+            {
+                int totalAlarms = KACWrapper.KAC.Alarms.Count;
+                for (int index = 0; index < totalAlarms; index++)
+                {
+                    if (KACWrapper.KAC.Alarms[index].ID == KACAlarmID)
+                    {
+                        KACWrapper.KAC.DeleteAlarm(KACAlarmID);
+                        return;
+                    }
+                }
+            }
+        }
+
+        public override void OnLoad(ConfigNode node)
 		{
 			if (HighLogic.LoadedSceneIsFlight)
 			{
@@ -198,27 +348,134 @@
 		{
 			var filters = new List<FilterBase>();
 			var filterTextures = new List<Texture>();
-			
-			var categoryFilterAddOns = vessel.FindPartModulesImplementing<OseModuleCategoryAddon>();
-			if (categoryFilterAddOns != null)
-			{
-				foreach (var addon in categoryFilterAddOns.Distinct(new OseModuleCategoryAddonEqualityComparer()).ToArray())
-				{
-                    WorkshopUtils.LogVerbose($"Found addon for category: {addon.Category}");
-					filters.Add(new FilterCategory(addon.Category));
-					filterTextures.Add(WorkshopUtils.LoadTexture(addon.IconPath));
-				}
-				
-			}
+            if (this.part.partInfo.partConfig == null)
+                return;
+            ConfigNode[] nodes = this.part.partInfo.partConfig.GetNodes("MODULE");
+            ConfigNode node = null;
+            ConfigNode workshopNode = null;
+            PartCategories category;
 
-			_filters = filters.ToArray();
+            //Get the nodes we're interested in
+            for (int index = 0; index < nodes.Length; index++)
+            {
+                node = nodes[index];
+                if (node.HasValue("name"))
+                {
+                    moduleName = node.GetValue("name");
+                    if (moduleName == this.ClassName)
+                    {
+                        workshopNode = node;
+                        break;
+                    }
+                }
+            }
+            if (workshopNode == null)
+                return;
+
+            //Each category represets one of the tab buttons from the KSP editor.
+            //Mods have the ability to specify which categories that the workshop can produce.
+            //If there are no CATEGORY nodes specified then the defaults are used instead.
+            nodes = workshopNode.GetNodes("CATEGORY");
+
+            //If we have no category nodes then just load the defaults.
+            if (nodes.Length == 0)
+            {
+                //Pods
+                filters.Add(new FilterCategory(PartCategories.Pods));
+                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/RDicon_commandmodules"));
+
+                //FuelTank
+                filters.Add(new FilterCategory(PartCategories.FuelTank));
+                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/RDicon_fuelSystems-advanced"));
+
+                //Engine
+                filters.Add(new FilterCategory(PartCategories.Engine));
+                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/RDicon_propulsionSystems"));
+
+                //Control
+                filters.Add(new FilterCategory(PartCategories.Control));
+                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_largecontrol"));
+
+                //Structural
+                filters.Add(new FilterCategory(PartCategories.Structural));
+                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_generalconstruction"));
+
+                //Aero
+                filters.Add(new FilterCategory(PartCategories.Aero));
+                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_advaerodynamics"));
+
+                //Utility
+                filters.Add(new FilterCategory(PartCategories.Utility));
+                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_generic"));
+
+                //Electrical
+                filters.Add(new FilterCategory(PartCategories.Electrical));
+                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_electrics"));
+
+                //Ground
+                filters.Add(new FilterCategory(PartCategories.Ground));
+                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_advancedmotors"));
+
+                //Payload
+                filters.Add(new FilterCategory(PartCategories.Payload));
+                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_composites"));
+
+                //Communications
+                filters.Add(new FilterCategory(PartCategories.Communication));
+                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_advunmanned"));
+
+                //Coupling
+                filters.Add(new FilterCategory(PartCategories.Coupling));
+                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/cs_size3"));
+
+                //Thermal
+                filters.Add(new FilterCategory(PartCategories.Thermal));
+                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/fuels_monopropellant"));
+
+                //Science
+                filters.Add(new FilterCategory(PartCategories.Science));
+                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_advsciencetech"));
+            }
+
+            else //Load all the specified CATEGORY nodes.
+            {
+                //Load the categories
+                for (int index = 0; index < nodes.Length; index++)
+                {
+                    node = nodes[index];
+                    if (!node.HasValue("name") && !node.HasValue("iconPath"))
+                        continue;
+
+                    try
+                    {
+                        category = (PartCategories)Enum.Parse(typeof(PartCategories), node.GetValue("name"));
+                        filters.Add(new FilterCategory(category));
+                        filterTextures.Add(WorkshopUtils.LoadTexture(node.GetValue("iconPath")));
+                    }
+                    catch (Exception ex)
+                    {
+                        WorkshopUtils.LogError("Error during LoadFilters: " + ex.ToString());
+                        continue;
+                    }
+                }
+            }
+
+            _filters = filters.ToArray();
 			_filterTextures = filterTextures.ToArray();
             _searchFilter = new FilterSearch();
 		}
 
 		private void LoadModuleState(ConfigNode node)
 		{
-			foreach (ConfigNode cn in node.nodes)
+            if (node.HasValue("progress"))
+                float.TryParse(node.GetValue("progress"), out progress);
+            if (node.HasValue("lastUpdateTime"))
+                double.TryParse(node.GetValue("lastUpdateTime"), out lastUpdateTime);
+            if (node.HasValue("KACAlarmID"))
+                KACAlarmID = node.GetValue("KACAlarmID");
+
+
+            foreach (ConfigNode cn in node.nodes)
 			{
 				if (cn.name == "ProcessedItem")
 				{
@@ -243,7 +500,7 @@
             WorkshopUtils.LogVerbose(PartLoader.LoadedPartsList.Count(WorkshopUtils.PartResearched) + " unlocked parts");
 
 			var items = new List<WorkshopItem>();
-			foreach (var loadedPart in PartLoader.LoadedPartsList.Where(p => p.name != "flag" && p.name != "kerbalEVA" && p.name != "kerbalEVAfemale"))
+			foreach (var loadedPart in PartLoader.LoadedPartsList.Where(p => p.name != "flag" && !p.name.StartsWith("kerbalEVA")))
 			{
 				try
 				{
@@ -295,6 +552,11 @@
 
 		public override void OnSave(ConfigNode node)
 		{
+            node.AddValue("progress", progress);
+            node.AddValue("lastUpdateTime", lastUpdateTime);
+            if (!string.IsNullOrEmpty("KACAlarmID"))
+                node.AddValue("KACAlarmID", KACAlarmID);
+
 			if (_processedItem != null)
 			{
 				var itemNode = node.AddNode("ProcessedItem");
@@ -310,22 +572,51 @@
 			base.OnSave(node);
 		}
 
-		public override void OnUpdate()
-		{
-			try
-			{
-				UpdateProductivity();
-				ApplyFilter();
-				ProcessItem();
-			}
-			catch (Exception ex)
-			{
-                WorkshopUtils.LogError("OseModuleWorkshop_OnUpdate", ex);
-			}
-			base.OnUpdate();
-		}
+        public void FixedUpdate()
+        {
+            if (!HighLogic.LoadedSceneIsFlight)
+                return;
+            try
+            {
+                UpdateProductivity();
 
-		private void UpdateProductivity()
+                ApplyFilter();
+
+                updateKACAlarm();
+
+                if (lastUpdateTime == 0)
+                {
+                    lastUpdateTime = Planetarium.GetUniversalTime();
+                    ProcessItem(TimeWarp.deltaTime);
+                    return;
+                }
+
+                //Get elapsed time
+                double elapsedTime = Planetarium.GetUniversalTime() - lastUpdateTime;
+
+                //Update last update time
+                lastUpdateTime = Planetarium.GetUniversalTime();
+
+                //If our elapsed time is > the background process interval, then we'll need to do some multiple processings.
+                double timeRemaining = 0;
+                while (elapsedTime > kBackgroundProcessInterval)
+                {
+                    timeRemaining = ProcessItem(kBackgroundProcessInterval);
+                    elapsedTime += timeRemaining;
+                    elapsedTime -= kBackgroundProcessInterval;
+                }
+
+                //Process the remaining delta time
+                if (elapsedTime > 0f)
+                    ProcessItem(elapsedTime);
+            }
+            catch (Exception ex)
+            {
+                WorkshopUtils.LogError("OseModuleWorkshop_OnUpdate", ex);
+            }
+        }
+
+        private void UpdateProductivity()
 		{
 			if (_processedItem != null && UseSpecializationBonus)
 			{ 
@@ -333,12 +624,14 @@
 			}
 		}
 
-		private void ProcessItem()
+		private double ProcessItem(double deltaTime)
 		{
-			if (manufacturingPaused)
+            double timeRemaining = 0;
+
+            if (manufacturingPaused)
 			{
 				Status = "Paused";
-				return;
+                return 0;
 			}
 
 			if (progress >= 100)
@@ -347,12 +640,14 @@
 			}
 			else if (_processedItem != null)
 			{
-				ExecuteManufacturing();
+                timeRemaining = ExecuteManufacturing(deltaTime);
 			}
 			else
 			{
 				StartManufacturing();
 			}
+
+            return timeRemaining;
 		}
 
 		private void ApplyFilter()
@@ -386,7 +681,7 @@
 			if (nextQueuedPart != null)
 			{
 				_processedItem = nextQueuedPart;
-				_processedBlueprint = WorkshopRecipeDatabase.ProcessPart(nextQueuedPart.Part);
+				_processedBlueprint = WorkshopRecipeDatabase.ProcessPart(nextQueuedPart.Part, workshopRecipe);
 				
 				if (Animate && _heatAnimation != null && _workAnimation != null)
 				{
@@ -434,22 +729,25 @@
 			_heatAnimation.enabled = false;
 		}
 
-		private void ExecuteManufacturing()
+		private double ExecuteManufacturing(double deltaTime)
 		{
+            //Find the first resource that still needs to be processed.
 			var resourceToConsume = _processedBlueprint.First(r => r.Processed < r.Units);
-			var unitsToConsume = Math.Min(resourceToConsume.Units - resourceToConsume.Processed, TimeWarp.deltaTime * adjustedProductivity);
 
-			if (part.protoModuleCrew.Count < MinimumCrew)
+            //Determine the number of units of the resource to consume.
+            var unitsToConsume = Math.Min(resourceToConsume.Units - resourceToConsume.Processed, deltaTime * adjustedProductivity);
+
+            if (part.protoModuleCrew.Count < MinimumCrew)
 			{
 				Status = "Not enough Crew to operate";
 			}
 
-			else if (AmountAvailable(UpkeepResource) < TimeWarp.deltaTime)
+			else if (AmountAvailable(UpkeepResource) < TimeWarp.deltaTime * UpkeepAmount)
 			{
 				Status = "Not enough " + UpkeepResource;
 			}
 
-			else if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER && Funding.Instance.Funds < _processedBlueprint.Funds)
+			else if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER && WorkshopOptions.PrintingCostsFunds && Funding.Instance.Funds < _processedBlueprint.Funds)
 			{
 				Status = "Not enough funds to process";
 			}
@@ -461,15 +759,22 @@
 			else
 			{
 				Status = "Printing " + _processedItem.Part.title;
-				if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER && _processedBlueprint.Funds > 0)
+				if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER && WorkshopOptions.PrintingCostsFunds && _processedBlueprint.Funds > 0)
 				{
 					Funding.Instance.AddFunds(-_processedBlueprint.Funds, TransactionReasons.Vessels);
 					_processedBlueprint.Funds = 0;
 				}
-				RequestResource(UpkeepResource, TimeWarp.deltaTime);
+                else
+                {
+                    _processedBlueprint.Funds = 0;
+                }
+                RequestResource(UpkeepResource, TimeWarp.deltaTime * UpkeepAmount);
 				resourceToConsume.Processed += RequestResource(resourceToConsume.Name, unitsToConsume);
 				progress = (float)(_processedBlueprint.GetProgress() * 100);
 			}
+
+            //Return time remaining
+            return deltaTime - unitsToConsume;
 		}
 
 		private double AmountAvailable(string resource)
@@ -507,6 +812,8 @@
 			{
 				Status = "Not enough free space";
 			}
+
+            deleteKACAlarm();
 		}
 
 		public override void OnInactive()
@@ -607,201 +914,208 @@
 
 		private void DrawWindow()
 		{
-			GUI.skin = HighLogic.Skin;
-			GUI.skin.label.alignment = TextAnchor.MiddleCenter;
-			GUI.skin.button.alignment = TextAnchor.MiddleCenter;
+            GUI.skin = HighLogic.Skin;
+            GUI.skin.label.alignment = TextAnchor.MiddleCenter;
+            GUI.skin.button.alignment = TextAnchor.MiddleCenter;
 
-			_windowPos = GUI.Window(GetInstanceID(), _windowPos, DrawWindowContents, "Workbench (" + _maxVolume + " litres - " + _filters[_activeFilterId] + ") v." + modVersion.ToString());
+            _windowPos = GUI.Window(GetInstanceID(), _windowPos, DrawWindowContents, "Workbench (" + _maxVolume + " litres - " + _filters[_activeFilterId] + ") v." + modVersion.ToString());
 		}
 
 		private void DrawWindowContents(int windowId)
-		{
-			WorkshopItem mouseOverItem = null;
+        {
+            _selectedFilterId = GUI.Toolbar(new Rect(15, 35, 615, 30), _selectedFilterId, _filterTextures);
 
-			// styles 
-			var statsStyle = new GUIStyle(GUI.skin.box);
-			statsStyle.fontSize = 11;
-			statsStyle.alignment = TextAnchor.UpperLeft;
-			statsStyle.padding.left = statsStyle.padding.top = 5;
+            WorkshopItem mouseOverItem = null;
 
-			var tooltipDescriptionStyle = new GUIStyle(GUI.skin.box);
-			tooltipDescriptionStyle.fontSize = 11;
-			tooltipDescriptionStyle.alignment = TextAnchor.UpperLeft;
-			tooltipDescriptionStyle.padding.top = 5;
+            mouseOverItem = DrawAvailableItems(mouseOverItem);
+            mouseOverItem = DrawQueue(mouseOverItem);
+            DrawMouseOverItem(mouseOverItem);
 
-            var titleDescriptionStyle = new GUIStyle(GUI.skin.box);
-            tooltipDescriptionStyle.fontSize = 13;
-            tooltipDescriptionStyle.alignment = TextAnchor.UpperLeft;
-            tooltipDescriptionStyle.padding.top = 5;
+            DrawPrintProgress();
 
+            if (GUI.Button(new Rect(_windowPos.width - 25, 5, 20, 20), "X"))
+            {
+                ContextMenuOpenWorkbench();
+            }
+            GUI.DragWindow();
+        }
 
-            var queueSkin = new GUIStyle(GUI.skin.box);
-			queueSkin.alignment = TextAnchor.UpperCenter;
-			queueSkin.padding.top = 5;
+        private void DrawPrintProgress()
+        {
+            Debug.Log("DrawPrintProgress 1");
+            // Currently build item
+            if (_processedItem != null)
+            {
+                if (_processedItem.Icon == null)
+                {
+                    _processedItem.EnableIcon(64);
+                }
+                GUI.Box(new Rect(190, 620, 50, 50), _processedItem.Icon.texture);
+            }
+            else
+            {
+                GUI.Box(new Rect(190, 620, 50, 50), "");
+            }
+            Debug.Log("DrawPrintProgress 2");
 
-			// Filters
-			_selectedFilterId = GUI.Toolbar(new Rect(15, 35, 615, 30), _selectedFilterId, _filterTextures);
+            // Progressbar
+            GUI.Box(new Rect(250, 620, 280, 50), "");
+            if (progress >= 1)
+            {
+                var color = GUI.color;
+                GUI.color = new Color(0, 1, 0, 1);
+                GUI.Box(new Rect(250, 620, 280 * progress / 100, 50), "");
+                GUI.color = color;
+            }
+            if (_processedBlueprint == null)
+                Debug.Log("_processedBlueprint is null");
+            string progressText = "";
+            if (_processedBlueprint != null)
+                progressText = string.Format("Progress: {0:n1}%, T- ", progress) + KSPUtil.PrintTime(_processedBlueprint.GetBuildTime(adjustedProductivity), 5, false);
+            GUI.Label(new Rect(250, 620, 280, 50), " " + progressText);
 
-			// Available Items
-			const int itemRows = 10;
-			const int itemColumns = 3;
-			for (var y = 0; y < itemRows; y++)
-			{
-				for (var x = 0; x < itemColumns; x++)
-				{
-					var left = 15 + x * 55;
-					var top = 70 + y * 55;
-					var itemIndex = y * itemColumns + x;
-					if (_filteredItems.Items.Length > itemIndex)
-					{
-						var item = _filteredItems.Items[itemIndex];
-						if (item.Icon == null)
-						{
-							item.EnableIcon(64);
-						}
-						if (GUI.Button(new Rect(left, top, 50, 50), item.Icon.texture))
-						{
-							_queue.Add(new WorkshopItem(item.Part));
-						}
-						if (Event.current.type == EventType.Repaint && new Rect(left, top, 50, 50).Contains(Event.current.mousePosition))
-						{
-							mouseOverItem = item;
-						}
-					}
-				}
-			}
+            //Pause/resume production
+            Texture2D buttonTexture = _pauseTexture;
+            if (manufacturingPaused || _processedItem == null)
+                buttonTexture = _playTexture;
+            if (GUI.Button(new Rect(530, 620, 50, 50), buttonTexture) && _processedItem != null)
+            {
+                manufacturingPaused = !manufacturingPaused;
+            }
+            Debug.Log("DrawPrintProgress 3");
+            //Cancel production
+            if (GUI.Button(new Rect(580, 620, 50, 50), _binTexture))
+            {
+                if (_confirmDelete)
+                {
+                    _processedItem.DisableIcon();
+                    _processedItem = null;
+                    _processedBlueprint = null;
+                    progress = 0;
+                    manufacturingPaused = false;
+                    Status = "Online";
 
-			if (_activePage > 0)
-			{
-				if (GUI.Button(new Rect(15, 615, 75, 25), "Prev"))
-				{
-					_selectedPage = _activePage - 1;
-				}
-			}
+                    if (Animate && _heatAnimation != null && _workAnimation != null)
+                    {
+                        StartCoroutine(StopAnimations());
+                    }
+                    _confirmDelete = false;
+                }
 
-            // GUI.Label(new Rect(90, 615, 10, 25), _selectedPage.ToString());
+                else
+                {
+                    _confirmDelete = true;
+                    ScreenMessages.PostScreenMessage("Click the cancel button again to confirm cancelling current production", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                }
+            }
+        }
 
-			if (_activePage < _filteredItems.MaxPages)
-			{
-				if (GUI.Button(new Rect(100, 615, 75, 25), "Next"))
-				{
-					_selectedPage = _activePage + 1;
-				}
-			}
+        private WorkshopItem DrawAvailableItems(WorkshopItem mouseOverItem)
+        {
+             
+
+            // Available Items
+            const int itemRows = 10;
+            const int itemColumns = 3;
+            for (var y = 0; y < itemRows; y++)
+            {
+                for (var x = 0; x < itemColumns; x++)
+                {
+                    var left = 15 + x * 55;
+                    var top = 70 + y * 55;
+                    var itemIndex = y * itemColumns + x;
+                    if (_filteredItems.Items.Length > itemIndex)
+                    {
+                        var item = _filteredItems.Items[itemIndex];
+                        if (item.Icon == null)
+                        {
+                            item.EnableIcon(64);
+                        }
+                        if (GUI.Button(new Rect(left, top, 50, 50), item.Icon.texture))
+                        {
+                            _queue.Add(new WorkshopItem(item.Part));
+                        }
+                        if (Event.current.type == EventType.Repaint && new Rect(left, top, 50, 50).Contains(Event.current.mousePosition))
+                        {
+                            mouseOverItem = item;
+                        }
+                    }
+                }
+            }
+
+            if (_activePage > 0)
+            {
+                if (GUI.Button(new Rect(15, 615, 75, 25), "Prev"))
+                {
+                    _selectedPage = _activePage - 1;
+                }
+            }
+
+            if (_activePage < _filteredItems.MaxPages)
+            {
+                if (GUI.Button(new Rect(100, 615, 75, 25), "Next"))
+                {
+                    _selectedPage = _activePage + 1;
+                }
+            }
 
             // search box
             _oldSsearchText = _searchFilter.FilterText;
-            GUI.Label(new Rect(15, 645, 65, 25), "Find: ", statsStyle);
+            GUI.Label(new Rect(15, 645, 65, 25), "Find: ", UI.UIStyles.StatsStyle);
             _searchFilter.FilterText = GUI.TextField(new Rect(75, 645, 100, 25), _searchFilter.FilterText);
 
-            // Queued Items
+            return mouseOverItem;
+        }
+
+        private WorkshopItem DrawQueue(WorkshopItem mouseOverItem)
+        {
             const int queueRows = 4;
-			const int queueColumns = 7;
-			GUI.Box(new Rect(190, 345, 440, 270), "Queue", queueSkin);
-			for (var y = 0; y < queueRows; y++)
-			{
-				for (var x = 0; x < queueColumns; x++)
-				{
-					var left = 205 + x * 60;
-					var top = 370 + y * 60;
-					var itemIndex = y * queueColumns + x;
-					if (_queue.Count > itemIndex)
-					{
-						var item = _queue[itemIndex];
-						if (item.Icon == null)
-						{
-							item.EnableIcon(64);
-						}
-						if (GUI.Button(new Rect(left, top, 50, 50), item.Icon.texture))
-						{
-							_queue.Remove(item);
-						}
-						if (Event.current.type == EventType.Repaint && new Rect(left, top, 50, 50).Contains(Event.current.mousePosition))
-						{
-							mouseOverItem = item;
-						}
-					}
-				}
-			}
+            const int queueColumns = 7;
 
-			// Tooltip
-			GUI.Box(new Rect(190, 70, 440, 270), "");
-			if (mouseOverItem != null)
-			{
-				var blueprint = WorkshopRecipeDatabase.ProcessPart(mouseOverItem.Part);
-				GUI.Box(new Rect(200, 80, 100, 100), mouseOverItem.Icon.texture);
-				GUI.Box(new Rect(310, 80, 150, 100), WorkshopUtils.GetKisStats(mouseOverItem.Part), statsStyle);
-				GUI.Box(new Rect(470, 80, 150, 100), blueprint.Print(adjustedProductivity), statsStyle);
-                GUI.Box(new Rect(200, 190, 420, 25), mouseOverItem.Part.title, titleDescriptionStyle);
-				GUI.Box(new Rect(200, 220, 420, 110), mouseOverItem.Part.description, tooltipDescriptionStyle);
-			}
+            GUI.Box(new Rect(190, 345, 440, 270), "Queue", UI.UIStyles.QueueSkin);
+            for (var y = 0; y < queueRows; y++)
+            {
+                for (var x = 0; x < queueColumns; x++)
+                {
+                    var left = 205 + x * 60;
+                    var top = 370 + y * 60;
+                    var itemIndex = y * queueColumns + x;
+                    if (_queue.Count > itemIndex)
+                    {
+                        var item = _queue[itemIndex];
+                        if (item.Icon == null)
+                        {
+                            item.EnableIcon(64);
+                        }
+                        if (GUI.Button(new Rect(left, top, 50, 50), item.Icon.texture))
+                        {
+                            _queue.Remove(item);
+                        }
+                        if (Event.current.type == EventType.Repaint && new Rect(left, top, 50, 50).Contains(Event.current.mousePosition))
+                        {
+                            mouseOverItem = item;
+                        }
+                    }
+                }
+            }
 
-			// Currently build item
-			if (_processedItem != null)
-			{
-				if (_processedItem.Icon == null)
-				{
-					_processedItem.EnableIcon(64);
-				}
-				GUI.Box(new Rect(190, 620, 50, 50), _processedItem.Icon.texture);
-			}
-			else
-			{
-				GUI.Box(new Rect(190, 620, 50, 50), "");
-			}
+            return mouseOverItem;
+            // Tooltip
+        }
 
-			// Progressbar
-			GUI.Box(new Rect(250, 620, 280, 50), "");
-			if (progress >= 1)
-			{
-				var color = GUI.color;
-				GUI.color = new Color(0, 1, 0, 1);
-				GUI.Box(new Rect(250, 620, 280 * progress / 100, 50), "");
-				GUI.color = color;
-			}
-			GUI.Label(new Rect(250, 620, 280, 50), " " + progress.ToString("0.0") + " / 100");
-
-			//Pause/resume production
-			Texture2D buttonTexture = _pauseTexture;
-			if (manufacturingPaused || _processedItem == null)
-				buttonTexture = _playTexture;
-			if (GUI.Button(new Rect(530, 620, 50, 50), buttonTexture) && _processedItem != null)
-			{
-				manufacturingPaused = !manufacturingPaused;
-			}
-
-			//Cancel production
-			if (GUI.Button(new Rect(580, 620, 50, 50), _binTexture))
-			{
-				if (_confirmDelete)
-				{
-					_processedItem.DisableIcon();
-					_processedItem = null;
-					_processedBlueprint = null;
-					progress = 0;
-					manufacturingPaused = false;
-					Status = "Online";
-
-					if (Animate && _heatAnimation != null && _workAnimation != null)
-					{
-						StartCoroutine(StopAnimations());
-					}
-					_confirmDelete = false;
-				}
-
-				else
-				{
-					_confirmDelete = true;
-					ScreenMessages.PostScreenMessage("Click the cancel button again to confirm cancelling current production", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-				}
-			}
-
-			if (GUI.Button(new Rect(_windowPos.width - 25, 5, 20, 20), "X"))
-			{
-				ContextMenuOpenWorkbench();
-			}
-
-			GUI.DragWindow();
-		}
-	}
+        private void DrawMouseOverItem(WorkshopItem mouseOverItem)
+        {
+            GUI.Box(new Rect(190, 70, 440, 270), "");
+            if (mouseOverItem != null)
+            {
+                adjustedProductivity = WorkshopUtils.GetProductivityBonus(this.part, ExperienceEffect, SpecialistEfficiencyFactor, ProductivityFactor);
+                var blueprint = WorkshopRecipeDatabase.ProcessPart(mouseOverItem.Part);
+                GUI.Box(new Rect(200, 80, 100, 100), mouseOverItem.Icon.texture);
+                GUI.Box(new Rect(310, 80, 150, 100), WorkshopUtils.GetKisStats(mouseOverItem.Part), UI.UIStyles.StatsStyle);
+                GUI.Box(new Rect(470, 80, 150, 100), blueprint.Print(adjustedProductivity), UI.UIStyles.StatsStyle);
+                GUI.Box(new Rect(200, 190, 420, 25), mouseOverItem.Part.title, UI.UIStyles.TitleDescriptionStyle);
+                GUI.Box(new Rect(200, 220, 420, 110), mouseOverItem.Part.description, UI.UIStyles.TooltipDescriptionStyle);
+            }
+        }
+    }
 }

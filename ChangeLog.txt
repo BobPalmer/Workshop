@@ -1,0 +1,2 @@
+1.2.6
+	Fixed null ref when going into the workshop the first time without any parts in the queue

@@ -11,6 +11,8 @@
 
     public class OseModuleRecycler : PartModule
     {
+        private const double kBackgroundProcessInterval = 3600;
+
         private Blueprint _processedBlueprint;
         private WorkshopItem _processedItem;
 
@@ -34,6 +36,9 @@
 
         [KSPField(isPersistant = true)]
         public float progress;
+
+        [KSPField(isPersistant = true)]
+        public double lastUpdateTime;
 
         [KSPField]
         public float ConversionRate = 0.25f;
@@ -144,6 +149,11 @@
 
         private void LoadModuleState(ConfigNode node)
         {
+            if (node.HasValue("progress"))
+                float.TryParse(node.GetValue("progress"), out progress);
+            if (node.HasValue("lastUpdateTime"))
+                double.TryParse(node.GetValue("lastUpdateTime"), out lastUpdateTime);
+
             foreach (ConfigNode cn in node.nodes)
             {
                 if (cn.name == "ProcessedItem")
@@ -165,6 +175,9 @@
 
         public override void OnSave(ConfigNode node)
         {
+            node.AddValue("progress", progress);
+            node.AddValue("lastUpdateTime", lastUpdateTime);
+
             if (_processedItem != null)
             {
                 var itemNode = node.AddNode("ProcessedItem");
@@ -183,26 +196,56 @@
         private void UpdateProductivity()
         {
             if (_processedItem != null && UseSpecializationBonus)
-                adjustedProductivity = WorkshopUtils.GetProductivityBonus(this.part, ExperienceEffect, SpecialistEfficiencyFactor, ProductivityFactor);
+                adjustedProductivity = WorkshopUtils.GetProductivityBonus(part, ExperienceEffect, SpecialistEfficiencyFactor, ProductivityFactor);
         }
 
-        public override void OnUpdate()
+        public void FixedUpdate()
         {
+            if (!HighLogic.LoadedSceneIsFlight)
+                return;
+
             try
             {
                 UpdateProductivity();
+
                 ApplyPaging();
-                ProcessItem();
+
+                if (lastUpdateTime == 0)
+                {
+                    lastUpdateTime = Planetarium.GetUniversalTime();
+                    ProcessItem(TimeWarp.deltaTime);
+                    return;
+                }
+
+                //Get elapsed time
+                double elapsedTime = Planetarium.GetUniversalTime() - lastUpdateTime;
+
+                //Update last update time
+                lastUpdateTime = Planetarium.GetUniversalTime();
+
+                //If our elapsed time is > the background process interval, then we'll need to do some multiple processings.
+                double timeRemaining = 0;
+                while (elapsedTime > kBackgroundProcessInterval)
+                {
+                    timeRemaining = ProcessItem(kBackgroundProcessInterval);
+                    elapsedTime += timeRemaining;
+                    elapsedTime -= kBackgroundProcessInterval;
+                }
+
+                //Process the remaining delta time
+                if (elapsedTime > 0f)
+                    ProcessItem(elapsedTime);
             }
             catch (Exception ex)
             {
                 WorkshopUtils.LogError("OseModuleWorkshop_OnUpdate", ex);
             }
-            base.OnUpdate();
         }
 
-        private void ProcessItem()
+        private double ProcessItem(double deltaTime)
         {
+            double timeRemaining = 0;
+
             if (recyclingPaused)
             {
                 Status = "Paused";
@@ -213,12 +256,14 @@
             }
             else if (_processedItem != null)
             {
-                ExecuteManufacturing();
+                timeRemaining = ExecuteManufacturing(deltaTime);
             }
             else
             {
                 StartManufacturing();
             }
+
+            return timeRemaining;
         }
 
         private void ApplyPaging()
@@ -250,27 +295,30 @@
             }
         }
 
-        private void ExecuteManufacturing()
+        private double ExecuteManufacturing(double deltaTime)
         {
             var resourceToProduce = _processedBlueprint.First(r => r.Processed < r.Units);
-            var unitsToProduce = Math.Min(resourceToProduce.Units - resourceToProduce.Processed, TimeWarp.deltaTime * adjustedProductivity);
+            var unitsToProduce = Math.Min(resourceToProduce.Units - resourceToProduce.Processed, deltaTime * adjustedProductivity);
 
             if (part.protoModuleCrew.Count < MinimumCrew)
             {
                 Status = "Not enough Crew to operate";
             }
-            else if (_broker.AmountAvailable(this.part, UpkeepResource, TimeWarp.deltaTime, ResourceFlowMode.ALL_VESSEL) < TimeWarp.deltaTime)
+            else if (_broker.AmountAvailable(part, UpkeepResource, TimeWarp.deltaTime, ResourceFlowMode.ALL_VESSEL) < TimeWarp.deltaTime)
             {
                 Status = "Not enough " + UpkeepResource;
             }
             else
             {
                 Status = "Recycling " + _processedItem.Part.title;
-                _broker.RequestResource(this.part, UpkeepResource, UpkeepAmount, TimeWarp.deltaTime, ResourceFlowMode.ALL_VESSEL);
-                _broker.StoreResource(this.part, resourceToProduce.Name, unitsToProduce, TimeWarp.deltaTime, ResourceFlowMode.ALL_VESSEL);
+                _broker.RequestResource(part, UpkeepResource, UpkeepAmount, TimeWarp.deltaTime, ResourceFlowMode.ALL_VESSEL);
+                _broker.StoreResource(part, resourceToProduce.Name, unitsToProduce, TimeWarp.deltaTime, ResourceFlowMode.ALL_VESSEL);
                 resourceToProduce.Processed += unitsToProduce;
                 progress = (float)(_processedBlueprint.GetProgress() * 100);
             }
+
+            //Return time remaining
+            return deltaTime - unitsToProduce;
         }
 
         private void FinishManufacturing()
@@ -336,32 +384,21 @@
             WorkshopItem mouseOverItem = null;
             KIS_Item mouseOverItemKIS = null;
 
-            // styles 
-            var statsStyle = new GUIStyle(GUI.skin.box);
-            statsStyle.fontSize = 11;
-            statsStyle.alignment = TextAnchor.UpperLeft;
-            statsStyle.padding.left = statsStyle.padding.top = 5;
+            mouseOverItemKIS = DrawInventoryItems(mouseOverItemKIS);
+            mouseOverItem = DrawQueue(mouseOverItem);
+            DrawMouseOverItem(mouseOverItem, mouseOverItemKIS);
+            DrawRecyclingProgress();
 
-            var tooltipDescriptionStyle = new GUIStyle(GUI.skin.box);
-            tooltipDescriptionStyle.fontSize = 11;
-            tooltipDescriptionStyle.alignment = TextAnchor.UpperLeft;
-            tooltipDescriptionStyle.padding.top = 5;
+            if (GUI.Button(new Rect(_windowPos.width - 25, 5, 20, 20), "X"))
+            {
+                ContextMenuOnOpenRecycler();
+            }
 
-            var titleDescriptionStyle = new GUIStyle(GUI.skin.box);
-            tooltipDescriptionStyle.fontSize = 13;
-            tooltipDescriptionStyle.alignment = TextAnchor.UpperLeft;
-            tooltipDescriptionStyle.padding.top = 5;
+            GUI.DragWindow();
+        }
 
-            var queueSkin = new GUIStyle(GUI.skin.box);
-            queueSkin.alignment = TextAnchor.UpperCenter;
-            queueSkin.padding.top = 5;
-
-            var lowerRightStyle = new GUIStyle(GUI.skin.label);
-            lowerRightStyle.alignment = TextAnchor.LowerRight;
-            lowerRightStyle.fontSize = 10;
-            lowerRightStyle.padding = new RectOffset(4, 4, 4, 4);
-            lowerRightStyle.normal.textColor = Color.white;
-
+        KIS_Item DrawInventoryItems(KIS_Item mouseOverItem)
+        {
             // AvailableItems
             const int ItemRows = 10;
             const int ItemColumns = 3;
@@ -389,11 +426,11 @@
                         }
                         if (item.Value.stackable)
                         {
-                            GUI.Label(new Rect(left, top, 50, 50), item.Value.quantity.ToString("x#"), lowerRightStyle);
+                            GUI.Label(new Rect(left, top, 50, 50), item.Value.quantity.ToString("x#"), UI.UIStyles.lowerRightStyle);
                         }
                         if (Event.current.type == EventType.Repaint && new Rect(left, top, 50, 50).Contains(Event.current.mousePosition))
                         {
-                            mouseOverItemKIS = item.Value;
+                            mouseOverItem = item.Value;
                         }
                     }
                 }
@@ -414,11 +451,15 @@
                     _selectedPage = _activePage + 1;
                 }
             }
+            return mouseOverItem;
+        }
 
+        WorkshopItem DrawQueue(WorkshopItem mouseOverItem)
+        {
             // Queued Items
             const int QueueRows = 4;
             const int QueueColumns = 7;
-            GUI.Box(new Rect(190, 345, 440, 270), "Queue", queueSkin);
+            GUI.Box(new Rect(190, 345, 440, 270), "Queue", UI.UIStyles.QueueSkin);
             for (var y = 0; y < QueueRows; y++)
             {
                 for (var x = 0; x < QueueColumns; x++)
@@ -445,7 +486,13 @@
                 }
             }
 
+            return mouseOverItem;
+        }
+
+        void DrawMouseOverItem(WorkshopItem mouseOverItem, KIS_Item mouseOverItemKIS)
+        {
             // Tooltip
+            adjustedProductivity = WorkshopUtils.GetProductivityBonus(part, ExperienceEffect, SpecialistEfficiencyFactor, ProductivityFactor);
             GUI.Box(new Rect(190, 70, 440, 270), "");
             if (mouseOverItem != null)
             {
@@ -455,10 +502,10 @@
                     resource.Units *= ConversionRate;
                 }
                 GUI.Box(new Rect(200, 80, 100, 100), mouseOverItem.Icon.texture);
-                GUI.Box(new Rect(310, 80, 150, 100), WorkshopUtils.GetKisStats(mouseOverItem.Part), statsStyle);
-                GUI.Box(new Rect(470, 80, 150, 100), blueprint.Print(adjustedProductivity), statsStyle);
-                GUI.Box(new Rect(200, 190, 420, 25), mouseOverItem.Part.title, titleDescriptionStyle);
-                GUI.Box(new Rect(200, 220, 420, 110), mouseOverItem.Part.description, tooltipDescriptionStyle);
+                GUI.Box(new Rect(310, 80, 150, 100), WorkshopUtils.GetKisStats(mouseOverItem.Part), UI.UIStyles.StatsStyle);
+                GUI.Box(new Rect(470, 80, 150, 100), blueprint.Print(adjustedProductivity), UI.UIStyles.StatsStyle);
+                GUI.Box(new Rect(200, 190, 420, 25), mouseOverItem.Part.title, UI.UIStyles.TitleDescriptionStyle);
+                GUI.Box(new Rect(200, 220, 420, 110), mouseOverItem.Part.description, UI.UIStyles.TooltipDescriptionStyle);
             }
             else if (mouseOverItemKIS != null)
             {
@@ -468,12 +515,16 @@
                     resource.Units *= ConversionRate;
                 }
                 GUI.Box(new Rect(200, 80, 100, 100), mouseOverItemKIS.Icon.texture);
-                GUI.Box(new Rect(310, 80, 150, 100), WorkshopUtils.GetKisStats(mouseOverItemKIS.availablePart), statsStyle);
-                GUI.Box(new Rect(470, 80, 150, 100), blueprint.Print(adjustedProductivity), statsStyle);
-                GUI.Box(new Rect(200, 190, 420, 25), mouseOverItem.Part.title, titleDescriptionStyle);
-                GUI.Box(new Rect(200, 220, 420, 110), mouseOverItem.Part.description, tooltipDescriptionStyle);
+                GUI.Box(new Rect(310, 80, 150, 100), WorkshopUtils.GetKisStats(mouseOverItemKIS.availablePart), UI.UIStyles.StatsStyle);
+                GUI.Box(new Rect(470, 80, 150, 100), blueprint.Print(adjustedProductivity), UI.UIStyles.StatsStyle);
+                GUI.Box(new Rect(200, 190, 420, 25), mouseOverItemKIS.availablePart.title, UI.UIStyles.TitleDescriptionStyle);
+                GUI.Box(new Rect(200, 220, 420, 110), mouseOverItemKIS.availablePart.description, UI.UIStyles.TooltipDescriptionStyle);
             }
 
+        }
+
+        void DrawRecyclingProgress()
+        {
             // Currently build item
             if (_processedItem != null)
             {
@@ -497,7 +548,10 @@
                 GUI.Box(new Rect(250, 620, 260 * progress / 100, 50), "");
                 GUI.color = color;
             }
-            GUI.Label(new Rect(250, 620, 260, 50), " " + progress.ToString("0.0") + " / 100");
+            string progressText = "";
+            if (_processedBlueprint != null)
+                progressText = string.Format("Progress: {0:n1}%, T- ", progress) + KSPUtil.PrintTime(_processedBlueprint.GetBuildTime(adjustedProductivity), 5, false);
+            GUI.Label(new Rect(250, 620, 260, 50), " " + progressText);
 
             // Toolbar
             if (recyclingPaused)
@@ -517,15 +571,10 @@
 
             if (GUI.Button(new Rect(580, 620, 50, 50), _binTexture))
             {
-                this.CancelManufacturing();
+                CancelManufacturing();
             }
-
-            if (GUI.Button(new Rect(_windowPos.width - 25, 5, 20, 20), "X"))
-            {
-                this.ContextMenuOnOpenRecycler();
-            }
-
-            GUI.DragWindow();
         }
     }
+
+    
 }

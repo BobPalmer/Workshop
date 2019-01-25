@@ -33,18 +33,18 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\..\KSP\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>R:\KSP_1.5.1_dev\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>..\..\..\..\KSP\KSP_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+      <HintPath>R:\KSP_1.5.1_dev\KSP_x64_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="UnityEngine">
-      <HintPath>..\..\..\..\KSP\KSP_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>R:\KSP_1.5.1_dev\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>..\..\..\..\KSP\KSP_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>R:\KSP_1.5.1_dev\KSP_x64_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -53,6 +53,7 @@
     <Compile Include="FilterBase.cs" />
     <Compile Include="FilterResult.cs" />
     <Compile Include="FilterSearch.cs" />
+    <Compile Include="KACWrapper.cs" />
     <Compile Include="KIS\KISWrapper.cs" />
     <Compile Include="Limit.cs" />
     <Compile Include="Clock.cs" />
@@ -66,6 +67,7 @@
     <Compile Include="Recipes\WorkshopRecipeDatabase.cs" />
     <Compile Include="Recipes\WorkshopRecipeLoader.cs" />
     <Compile Include="Recipes\WorkshopResource.cs" />
+    <Compile Include="UI\UIStyles.cs" />
     <Compile Include="WorkshopBlacklistItemsDatabase.cs" />
     <Compile Include="WorkshopBlacklistItemsLoader.cs" />
     <Compile Include="WorkshopOptions.cs" />
@@ -81,21 +83,23 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetDir)Workshop.dll"  "$(SolutionDir)\..\..\GameData\Workshop\Plugins" /Y
-(robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP\GameData\Workshop"   /E /V) 
-(robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP en\GameData\Workshop"   /E /V) 
-(robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP es\GameData\Workshop"   /E /V) 
-(robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP ru\GameData\Workshop"   /E /V) 
-(robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP jp\GameData\Workshop"   /E /V) 
-(robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP zh\GameData\Workshop"   /E /V) ^&amp;amp;amp; exit 0</PostBuildEvent>
+    <PostBuildEvent>
+rem copy "$(TargetDir)Workshop.dll"  "$(SolutionDir)\..\..\GameData\Workshop\Plugins" /Y
+rem (robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP\GameData\Workshop"   /E /V) 
+rem (robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP en\GameData\Workshop"   /E /V) 
+rem (robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP es\GameData\Workshop"   /E /V) 
+rem (robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP ru\GameData\Workshop"   /E /V) 
+rem (robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP jp\GameData\Workshop"   /E /V) 
+rem (robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP zh\GameData\Workshop"   /E /V) ^&amp;amp;amp; exit 0</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>rd /s /q "$(SolutionDir)\..\..\..\KSP\GameData\Workshop"
-rd /s /q "$(SolutionDir)\..\..\..\KSP en\GameData\Workshop"
-rd /s /q "$(SolutionDir)\..\..\..\KSP es\GameData\Workshop"
-rd /s /q "$(SolutionDir)\..\..\..\KSP ja\GameData\Workshop"
-rd /s /q "$(SolutionDir)\..\..\..\KSP zh\GameData\Workshop"
-rd /s /q "$(SolutionDir)\..\..\..\KSP ru\GameData\Workshop"</PreBuildEvent>
+    <PreBuildEvent>
+rem rd /s /q "$(SolutionDir)\..\..\..\KSP\GameData\Workshop"
+rem rd /s /q "$(SolutionDir)\..\..\..\KSP en\GameData\Workshop"
+rem rd /s /q "$(SolutionDir)\..\..\..\KSP es\GameData\Workshop"
+rem rd /s /q "$(SolutionDir)\..\..\..\KSP ja\GameData\Workshop"
+rem rd /s /q "$(SolutionDir)\..\..\..\KSP zh\GameData\Workshop"
+rem rd /s /q "$(SolutionDir)\..\..\..\KSP ru\GameData\Workshop"</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

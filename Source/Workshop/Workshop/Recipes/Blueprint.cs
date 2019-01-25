@@ -4,6 +4,7 @@ namespace Workshop.Recipes
 {
     using System.Linq;
     using System.Text;
+    using UnityEngine;
 
     public class Blueprint : List<WorkshopResource>, IConfigNode
     {
@@ -29,16 +30,23 @@ namespace Workshop.Recipes
                 sb.AppendLine(res.Name + " : " + res.Units.ToString("N1"));
             }
 
-            if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
+            if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER && WorkshopOptions.PrintingCostsFunds)
             {
                 sb.AppendLine("Resource costs: " + ResourceCosts().ToString("N1"));
                 sb.AppendLine("Funds: " + Funds);
             }
 
             var duration = this.Sum(r => r.Units) / productivity;
-            sb.AppendFormat("Duration: {0:00}h {1:00}m {2:00}s", duration / 3600, (duration / 60) % 60, duration % 60);
+            sb.Append(KSPUtil.PrintTime(duration, 5, false));
 
             return sb.ToString();
+        }
+
+        public double GetBuildTime(double productivity)
+        {
+            var totalAmount = this.Sum(r => r.Units);
+            var totalProcessed = this.Sum(r => r.Processed);
+            return (totalAmount - totalProcessed) / productivity;
         }
 
         public void Load(ConfigNode node)

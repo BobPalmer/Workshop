@@ -44,5 +44,10 @@
             node.AddValue("Units", Units);
             node.AddValue("Processed", Processed);
         }
+
+        public override string ToString()
+        {
+            return "ResourceName: " + this.Name + " Units required: " + this.Units + " Processed: " + this.Processed;
+        }
     }
 }

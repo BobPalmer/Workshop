@@ -22,36 +22,39 @@ namespace Workshop.Recipes
             return ResourceRecipes.ContainsKey(name);
         }
 
-        public static Blueprint ProcessPart(AvailablePart part)
+        public static Blueprint ProcessPart(AvailablePart part, Recipe workshopRecipe = null)
         {
             var resources = new Dictionary<string, WorkshopResource>();
-            if (PartRecipes.ContainsKey(part.name))
+            List<WorkshopResource> prepResources = null;
+
+            //Use part recipe
+            if (PartRecipes.ContainsKey(part.name) && WorkshopOptions.EnableRecipes)
             {
-                var recipe = PartRecipes[part.name];
-                foreach (var workshopResource in recipe.Prepare(part.partPrefab.mass))
-                {
-                    if (resources.ContainsKey(workshopResource.Name))
-                    {
-                        resources[workshopResource.Name].Merge(workshopResource);
-                    }
-                    else
-                    {
-                        resources[workshopResource.Name] = workshopResource;
-                    }
-                }
+                prepResources = PartRecipes[part.name].Prepare(part.partPrefab.mass);
             }
+
+            //Use workshop recipe override
+            else if (workshopRecipe != null)
+            {
+                prepResources = workshopRecipe.Prepare(part.partPrefab.mass);
+            }
+
+            //Use default recipe
             else
             {
-                foreach (var workshopResource in DefaultPartRecipe.Prepare(part.partPrefab.mass))
+                prepResources = DefaultPartRecipe.Prepare(part.partPrefab.mass);
+            }
+
+            //Now combine all the required resources
+            foreach (var workshopResource in prepResources)
+            {
+                if (resources.ContainsKey(workshopResource.Name))
                 {
-                    if (resources.ContainsKey(workshopResource.Name))
-                    {
-                        resources[workshopResource.Name].Merge(workshopResource);
-                    }
-                    else
-                    {
-                        resources[workshopResource.Name] = workshopResource;
-                    }
+                    resources[workshopResource.Name].Merge(workshopResource);
+                }
+                else
+                {
+                    resources[workshopResource.Name] = workshopResource;
                 }
             }
 

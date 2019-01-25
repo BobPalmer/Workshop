@@ -8,6 +8,15 @@
         [GameParameters.CustomParameterUI("Stupidity affects efficiency", toolTip = "If enabled, stupidity affects efficiency; the lower the better.", autoPersistance = true)]
         public bool stupidityAffectsEfficiency = false;
 
+        [GameParameters.CustomParameterUI("Printing parts costs Funds", toolTip = "If enabled, printing new parts will cost Funds in addition to resources.", autoPersistance = true)]
+        public bool partsCostFunds = true;
+
+        [GameParameters.CustomParameterUI("Enable Recipes", toolTip = "If enabled, printing new parts may require a variety of different resources.", autoPersistance = true)]
+        public bool enableRecipes = true;
+
+        [GameParameters.CustomParameterUI("Print requests create KAC alarms", toolTip = "If enabled, print jobs will add a KAC alarm.", autoPersistance = true)]
+        public bool enableKACIntegration = true;
+
         public override string DisplaySection => Section;
 
         public static bool EfficiencyEnabled
@@ -25,6 +34,33 @@
             {
                 WorkshopOptions options = HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>();
                 return options.stupidityAffectsEfficiency;
+            }
+        }
+
+        public static bool PrintingCostsFunds
+        {
+            get
+            {
+                WorkshopOptions options = HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>();
+                return options.partsCostFunds;
+            }
+        }
+
+        public static bool EnableRecipes
+        {
+            get
+            {
+                WorkshopOptions options = HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>();
+                return options.enableRecipes;
+            }
+        }
+
+        public static bool EnableKACIntegration
+        {
+            get
+            {
+                WorkshopOptions options = HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>();
+                return options.enableKACIntegration;
             }
         }
 
