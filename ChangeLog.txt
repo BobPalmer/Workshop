@@ -3,3 +3,10 @@
 	Added missing bulkheadProfiles to parts
 	Fixed nullref in the Workshop when hitting the trashcan when nothing was in queue
 	Reorganized directories a bit
+
+1.2.7.1
+	Fixed nullref when initializing KIS.  KIS changed from using a local class called ResourceInfo to using ProtoPartResourceSnapshot
+	Changed following from a field to a property (based on referenced mods)
+		kis_showGui
+		kis_quantity
+		kis_texture

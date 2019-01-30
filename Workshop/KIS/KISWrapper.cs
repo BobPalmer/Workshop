@@ -72,9 +72,10 @@
 
 		private static FieldInfo kis_maxVolume;
 
-		private static FieldInfo kis_showGui;
+        //private static FieldInfo kis_showGui;
+        private static PropertyInfo p_kis_showGui;
 
-		private static FieldInfo kis_items;
+        private static FieldInfo kis_items;
 
 		private static MethodInfo kis_GetContentVolume;
 
@@ -117,9 +118,10 @@
 		{
 			get
 			{
-				return (bool)kis_showGui.GetValue(_obj);
-			}
-		}
+                //return (bool)kis_showGui.GetValue(_obj);
+                return (bool)p_kis_showGui.GetValue(_obj, null);
+            }
+        }
 
 		public Part part
 		{
@@ -167,8 +169,9 @@
 			kis_invType = ModuleKISInventory_class.GetField("invType");
 			kis_podSeat = ModuleKISInventory_class.GetField("podSeat");
 			kis_maxVolume = ModuleKISInventory_class.GetField("maxVolume");
-			kis_showGui = ModuleKISInventory_class.GetField("showGui");
-			kis_items = ModuleKISInventory_class.GetField("items");
+            //kis_showGui = ModuleKISInventory_class.GetField("showGui");
+            p_kis_showGui = ModuleKISInventory_class.GetProperty("showGui");
+            kis_items = ModuleKISInventory_class.GetField("items");
 			kis_AddItem = ModuleKISInventory_class.GetMethod("AddItem", new[] { typeof(Part), typeof(int), typeof(int) });
 			kis_GetContentVolume = ModuleKISInventory_class.GetMethod("GetContentVolume");
 			kis_isFull = ModuleKISInventory_class.GetMethod("isFull");
@@ -220,12 +223,16 @@
 
 			public static void Initialize(Assembly kisAssembly)
 			{
-				ResourceInfo_struct = kisAssembly.GetTypes().First(t => t.Name.Equals("ResourceInfo"));
-				kis_resourceName = ResourceInfo_struct.GetField("resourceName");
-				kis_amount = ResourceInfo_struct.GetField("amount");
-				kis_maxAmount = ResourceInfo_struct.GetField("maxAmount");
-			}
-		}
+               
+               // ResourceInfo_struct = kisAssembly.GetTypes().First(t => t.Name.Equals("ResourceInfo"));
+
+                ResourceInfo_struct = typeof(ProtoPartResourceSnapshot);
+
+                kis_resourceName = ResourceInfo_struct.GetField("resourceName");
+                kis_amount = ResourceInfo_struct.GetField("amount");
+                kis_maxAmount = ResourceInfo_struct.GetField("maxAmount");
+            }
+        }
 
 		private static Type KIS_Item_class;
 
@@ -233,9 +240,10 @@
 
 		private static FieldInfo kis_availablePart;
 
-		private static FieldInfo kis_quantity;
+        //private static FieldInfo kis_quantity;
+        private static PropertyInfo p_kis_quantity;
 
-		private static FieldInfo kis_stackable;
+        private static FieldInfo kis_stackable;
 
 		private static MethodInfo kis_GetResources;
 
@@ -277,10 +285,11 @@
 
 		public int quantity
 		{
-			get { return (int) kis_quantity.GetValue(_obj); }
-		}
+            //get { return (int)kis_quantity.GetValue(_obj); }
+            get { return (int)p_kis_quantity.GetValue(_obj, null); }
+        }
 
-		public bool stackable
+        public bool stackable
 		{
 			get { return (bool) kis_stackable.GetValue(_obj); }
 		}
@@ -316,8 +325,9 @@
 			KIS_Item_class = kisAssembly.GetTypes().First(t => t.Name.Equals("KIS_Item"));
 			kis_icon = KIS_Item_class.GetField("icon");
 			kis_availablePart = KIS_Item_class.GetField("availablePart");
-			kis_quantity = KIS_Item_class.GetField("quantity");
-			kis_stackable = KIS_Item_class.GetField("stackable");
+            //kis_quantity = KIS_Item_class.GetField("quantity");
+            p_kis_quantity = KIS_Item_class.GetProperty("quantity");
+            kis_stackable = KIS_Item_class.GetField("stackable");
 			kis_GetResources = KIS_Item_class.GetMethod("GetResources");
 			kis_SetResource = KIS_Item_class.GetMethod("SetResource");
 			kis_EnableIcon = KIS_Item_class.GetMethod("EnableIcon");
@@ -330,7 +340,8 @@
 	{
 		private static Type KIS_IconViewer_class;
 
-		private static FieldInfo kis_texture;
+		//private static FieldInfo kis_texture;
+        private static PropertyInfo p_kis_texture;
 
 		private static MethodInfo kis_dispose;
 
@@ -340,7 +351,8 @@
 		{
 			get
 			{
-				return (Texture)kis_texture.GetValue(_obj);
+                return (Texture)p_kis_texture.GetValue(_obj, null);
+				//return (Texture)kis_texture.GetValue(_obj);
 			}
 		}
 
@@ -361,7 +373,9 @@
 		internal static void Initialize(Assembly kisAssembly)
 		{
 			KIS_IconViewer_class = kisAssembly.GetTypes().First(t => t.Name.Equals("KIS_IconViewer"));
-			kis_texture = KIS_IconViewer_class.GetField("texture");
+			//kis_texture = KIS_IconViewer_class.GetField("texture");
+            p_kis_texture = KIS_IconViewer_class.GetProperty("texture");
+
 			kis_dispose = KIS_IconViewer_class.GetMethod("Dispose");
 		}
 	}
@@ -371,18 +385,18 @@
 		public static bool Initialize()
 		{
 			var kisAssembly = AssemblyLoader.loadedAssemblies.FirstOrDefault(a => a.assembly.GetName().Name.Equals("KIS", StringComparison.InvariantCultureIgnoreCase));
-			if (kisAssembly == null)
-			{
-				return false;
-			}
 
-			KIS_Shared.Initialize(kisAssembly.assembly);
-			ModuleKISInventory.Initialize(kisAssembly.assembly);
-			ModuleKISItem.Initialize(kisAssembly.assembly);
+             if (kisAssembly == null)
+			{
+                    return false;
+			}
+            KIS_Shared.Initialize(kisAssembly.assembly);
+            ModuleKISInventory.Initialize(kisAssembly.assembly);
+            ModuleKISItem.Initialize(kisAssembly.assembly);
 			KIS_Item.Initialize(kisAssembly.assembly);
-			KIS_IconViewer.Initialize(kisAssembly.assembly);
-			KIS_Item.ResourceInfo.Initialize(kisAssembly.assembly);
-			return true;
+            KIS_IconViewer.Initialize(kisAssembly.assembly);
+            KIS_Item.ResourceInfo.Initialize(kisAssembly.assembly);
+            return true;
 		}
 
 		public static List<ModuleKISInventory> GetInventories(Vessel vessel)
