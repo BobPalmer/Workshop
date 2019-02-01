@@ -5,7 +5,7 @@
     using System.Linq;
     using System.Collections.Generic;
 
-    using KIS;
+    using W_KIS;
 
     using UnityEngine;
 
@@ -620,7 +620,7 @@
         {
             if (_processedItem != null && UseSpecializationBonus)
             {
-                adjustedProductivity = WorkshopUtils.GetProductivityBonus(this.part, ExperienceEffect, SpecialistEfficiencyFactor, ProductivityFactor);
+                adjustedProductivity = WorkshopUtils.GetProductivityBonus(this.part, ExperienceEffect, SpecialistEfficiencyFactor, ProductivityFactor, WorkshopUtils.ProductivityType.printer);
             }
         }
 
@@ -1110,7 +1110,7 @@
             GUI.Box(new Rect(190, 70, 440, 270), "");
             if (mouseOverItem != null)
             {
-                adjustedProductivity = WorkshopUtils.GetProductivityBonus(this.part, ExperienceEffect, SpecialistEfficiencyFactor, ProductivityFactor);
+                adjustedProductivity = WorkshopUtils.GetProductivityBonus(this.part, ExperienceEffect, SpecialistEfficiencyFactor, ProductivityFactor, WorkshopUtils.ProductivityType.printer);
                 var blueprint = WorkshopRecipeDatabase.ProcessPart(mouseOverItem.Part);
                 GUI.Box(new Rect(200, 80, 100, 100), mouseOverItem.Icon.texture);
                 GUI.Box(new Rect(310, 80, 150, 100), WorkshopUtils.GetKisStats(mouseOverItem.Part), UI.UIStyles.StatsStyle);

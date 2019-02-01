@@ -40,3 +40,17 @@ OSE Workshop is licensed under a Creative Commons Attribution-NonCommercial-Shar
 * KAS and KIS is the original work of KospY! - Thank you for creating this awesome mods.
 * Alshain: category icons
 * Enceos: 3D models and textures 
+
+
+TODO
+Add Stock Settings page
+	Bool OriginalSettings, if true, the multipliers below are hard-set to 1 and unchangable
+	Multiplier for processing time, going from 1 to 1000
+	Multiplier for recycling time, going from 1 to 1000
+	Bool NoLocalRecycling
+
+	processing time:
+		Blueprint.cs, line 39, line 50
+
+	Both processing & Recycling time:
+		Blueprint.cs: 13-18

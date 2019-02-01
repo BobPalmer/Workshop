@@ -1,6 +1,6 @@
 ﻿namespace Workshop
 {
-	using KIS;
+	using W_KIS;
 
 	using UnityEngine;
     using Workshop.Recipes;

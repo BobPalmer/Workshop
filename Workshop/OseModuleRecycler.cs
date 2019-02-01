@@ -5,7 +5,7 @@
 
     using UnityEngine;
 
-    using KIS;
+    using W_KIS;
     using Recipes;
     using System.Text;
 
@@ -196,14 +196,14 @@
         private void UpdateProductivity()
         {
             if (_processedItem != null && UseSpecializationBonus)
-                adjustedProductivity = WorkshopUtils.GetProductivityBonus(part, ExperienceEffect, SpecialistEfficiencyFactor, ProductivityFactor);
+                adjustedProductivity = WorkshopUtils.GetProductivityBonus(part, ExperienceEffect, SpecialistEfficiencyFactor, ProductivityFactor, WorkshopUtils.ProductivityType.recycler);
         }
 
         public void FixedUpdate()
         {
             if (!HighLogic.LoadedSceneIsFlight)
                 return;
-
+         
             try
             {
                 UpdateProductivity();
@@ -235,6 +235,7 @@
                 //Process the remaining delta time
                 if (elapsedTime > 0f)
                     ProcessItem(elapsedTime);
+
             }
             catch (Exception ex)
             {
@@ -298,7 +299,7 @@
         private double ExecuteManufacturing(double deltaTime)
         {
             var resourceToProduce = _processedBlueprint.First(r => r.Processed < r.Units);
-            var unitsToProduce = Math.Min(resourceToProduce.Units - resourceToProduce.Processed, deltaTime * adjustedProductivity);
+            var unitsToProduce = Math.Min(resourceToProduce.Units - resourceToProduce.Processed, deltaTime * adjustedProductivity) / (float)HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().recyclingTimeMultiplier;
 
             if (part.protoModuleCrew.Count < MinimumCrew)
             {
@@ -329,7 +330,7 @@
 
         private void CancelManufacturing()
         {
-            ScreenMessages.PostScreenMessage("Recycling of " + _processedItem.Part.title + " canceled.", 5, ScreenMessageStyle.UPPER_CENTER);
+            ScreenMessages.PostScreenMessage("Recycling of " + _processedItem.Part.title + " cancelled.", 5, ScreenMessageStyle.UPPER_CENTER);
             CleanupRecycler();
             recyclingPaused = false;
         }
@@ -382,7 +383,7 @@
         private void DrawWindowContents(int windowId)
         {
             WorkshopItem mouseOverItem = null;
-            KIS_Item mouseOverItemKIS = null;
+            W_KIS_Item mouseOverItemKIS = null;
 
             mouseOverItemKIS = DrawInventoryItems(mouseOverItemKIS);
             mouseOverItem = DrawQueue(mouseOverItem);
@@ -397,7 +398,7 @@
             GUI.DragWindow();
         }
 
-        KIS_Item DrawInventoryItems(KIS_Item mouseOverItem)
+        W_KIS_Item DrawInventoryItems(W_KIS_Item mouseOverItem)
         {
             // AvailableItems
             const int ItemRows = 10;
@@ -423,6 +424,7 @@
                         {
                             _queue.Add(new WorkshopItem(item.Value.availablePart));
                             item.Value.StackRemove(1);
+                            Log.Info("After StackRemove");
                         }
                         if (item.Value.stackable)
                         {
@@ -489,11 +491,10 @@
             return mouseOverItem;
         }
 
-        void DrawMouseOverItem(WorkshopItem mouseOverItem, KIS_Item mouseOverItemKIS)
+        void DrawMouseOverItem(WorkshopItem mouseOverItem, W_KIS_Item mouseOverItemKIS)
         {
             // Tooltip
-            adjustedProductivity = WorkshopUtils.GetProductivityBonus(part, ExperienceEffect, SpecialistEfficiencyFactor, ProductivityFactor);
-            GUI.Box(new Rect(190, 70, 440, 270), "");
+            adjustedProductivity = WorkshopUtils.GetProductivityBonus(part, ExperienceEffect, SpecialistEfficiencyFactor, ProductivityFactor, WorkshopUtils.ProductivityType.recycler) ;
             if (mouseOverItem != null)
             {
                 var blueprint = WorkshopRecipeDatabase.ProcessPart(mouseOverItem.Part);

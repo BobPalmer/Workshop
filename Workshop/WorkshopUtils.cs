@@ -8,11 +8,13 @@ namespace Workshop
 
     using UnityEngine;
 
-    using KIS;
+    using W_KIS;
 
     public class WorkshopUtils
     {
-        public static float GetProductivityBonus(Part part, string ExperienceEffect, float SpecialistEfficiencyFactor, float ProductivityFactor)
+        public enum ProductivityType { printer, recycler};
+
+        public static float GetProductivityBonus(Part part, string ExperienceEffect, float SpecialistEfficiencyFactor, float ProductivityFactor, ProductivityType ptype)
         {
             float adjustedProductivity = ProductivityFactor;
 
@@ -20,7 +22,7 @@ namespace Workshop
             {
                 int crewCount = part.protoModuleCrew.Count;
                 if (crewCount == 0)
-                    return ProductivityFactor;
+                    return ProductivityFactor / (float)HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().processingTimeMultiplier;
 
                 ProtoCrewMember worker;
                 GameParameters.AdvancedParams advancedParams = HighLogic.CurrentGame.Parameters.CustomParams<GameParameters.AdvancedParams>();
@@ -54,8 +56,10 @@ namespace Workshop
             {
                 LogError("Error encountered while trying to calculate productivity bonus", ex);
             }
-
-            return adjustedProductivity;
+            if (ptype == ProductivityType.printer)
+                return adjustedProductivity / (float)HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().processingTimeMultiplier;
+            else
+                return adjustedProductivity / (float)HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().recyclingTimeMultiplier;
         }
 
         public static float GetPackedPartVolume(AvailablePart part)

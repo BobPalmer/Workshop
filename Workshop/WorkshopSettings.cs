@@ -3,7 +3,7 @@
     using System;
     using UnityEngine;
 
-    using KIS;
+    using W_KIS;
 
     [KSPScenario(ScenarioCreationOptions.AddToAllGames, new [] {
 			GameScenes.SPACECENTER,

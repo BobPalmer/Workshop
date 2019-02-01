@@ -37,6 +37,7 @@ namespace Workshop.Recipes
             }
 
             var duration = this.Sum(r => r.Units) / productivity;
+            
             sb.Append(KSPUtil.PrintTime(duration, 5, false));
 
             return sb.ToString();

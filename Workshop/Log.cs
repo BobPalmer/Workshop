@@ -19,7 +19,7 @@ namespace Workshop
 
         public static LEVEL level = LEVEL.INFO;
 
-        private static readonly String PREFIX = "KRASH" + ": ";
+        private static readonly String PREFIX = "Workshop" + ": ";
 
         public static LEVEL GetLevel()
         {

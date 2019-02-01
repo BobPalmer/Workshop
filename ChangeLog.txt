@@ -10,3 +10,14 @@
 		kis_showGui
 		kis_quantity
 		kis_texture
+
+1.2.7.2
+	Recipe changes:
+		Added ModuleEngines to the MM_Workshop.cfg, same as ModuleEnginesFX
+		Added ModuleAlternator & ModuleDataTransmitter, 1 MaterialKits & 1 ExoticMinerals
+		ModuleLight:1 Rare metals
+		ModuleDeployableSolarPanel: 1 RareMetals & 1 ExoticMinerals
+	Removed unnecessary :FOR from the MM cfg files
+	In KISWrapper removed ALL Reflection code
+
+	Current release has the KIS code which removes items from inventory disabled due to a bug in KIS
