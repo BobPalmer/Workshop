@@ -34,17 +34,19 @@ namespace Workshop.Recipes
             }
 
             //Use workshop recipe override
-            else if (workshopRecipe != null)
-            {
-                prepResources = workshopRecipe.Prepare(part.partPrefab.mass);
-            }
-
-            //Use default recipe
             else
             {
-                prepResources = DefaultPartRecipe.Prepare(part.partPrefab.mass);
-            }
+                if (workshopRecipe != null)
+                {
+                    prepResources = workshopRecipe.Prepare(part.partPrefab.mass);
+                }
 
+                //Use default recipe
+                else
+                {
+                    prepResources = DefaultPartRecipe.Prepare(part.partPrefab.mass);
+                }
+            }
             //Now combine all the required resources
             foreach (var workshopResource in prepResources)
             {

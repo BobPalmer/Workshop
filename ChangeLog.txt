@@ -21,3 +21,15 @@
 	In KISWrapper removed ALL Reflection code
 
 	Current release has the KIS code which removes items from inventory disabled due to a bug in KIS
+
+1.2.7.3
+	Removed disabling of KIS
+	Change output resource of Workshop Chemical to MaterialKits
+	Changed tech required for Chem wk to Advanced Science Tech
+	Commented out the FlagDecal in the Chemical and 3D printing lab (not doing anything)
+	Moved MM patches into their own directory
+	Moved the part recipies out of the MM_Workshop.cfg and into the OSE_PartRecipes.cfg file
+	Added option to disallow either the workshop or recycler from working while landed at any of the stock launch sites
+	Added an overall time multipler
+	Added tooltips to the multiplier fields in the setting screen
+	Added Complexity value to recipes (not yet implemented)

@@ -1,0 +1,81 @@
+PART
+{
+	name = OSE_WorkshopAiCore
+	module = Part
+	author = Enceos
+	MODEL
+	{
+		model = Workshop/Assets/WorkshopAICore
+	}
+	rescaleFactor = 1
+	node_stack_top = 0.0, 1.102, 0.0, 0.0, 1.0, 0.0, 2
+	node_stack_bottom = 0.0, -1.102, 0.0, 0.0, -1.0, 0.0, 2
+	CrewCapacity = 2
+	TechRequired = fieldScience
+	entryCost = 12500
+	cost = 75000
+	category = Utility
+	subcategory = 0
+	title = Workshop AI Core
+	manufacturer = ObiVanDamme Space Engineering
+	description = No longer are you limited to construction facilities only on Kerbin! With the OSE 3D Printing Lab, you can construct a limited number of parts during your mission. More complex parts like engines, command modules or science experiments might require more than one resource. This advanced printing lab doesn't require crew to operate but it requires more power than the crewed version.
+	attachRules = 1,0,1,1,0
+	mass = 2.5
+	dragModelType = default
+	maximum_drag = 0.2
+	minimum_drag = 0.3
+	angularDrag = 2
+	crashTolerance = 6
+	breakingForce = 200
+	breakingTorque = 200
+	maxTemp = 2000 // = 2900
+	vesselType = Station
+	bulkheadProfiles = size2
+
+	INTERNAL
+	{
+		//name = crewCabinInternals
+		name = OSEInternal2Seats
+	}
+
+	MODULE:NEEDS[Workshop] 
+	{
+		name = OseModuleWorkshop
+		ProductivityFactor = 0.02 // Consumption rate of each required resource in units/sec.
+		SpecialistEfficiencyFactor = 0.008 //Additional unit/sec of each resource that will be consumed, per experience star of the specialist.
+		ExperienceEffect = RepairSkill //Skill required for the increased efficiency.
+		UpkeepResource = ElectricCharge // This resource will be consumed 1 per second during processing
+		UpkeepAmount = 5.0 //How much upkeep resource to charge
+		MinimumCrew = 0 // Amount of Kerbals needed for the Workshop to work
+	}
+
+	MODULE:NEEDS[Workshop]
+	{
+		name = OseModuleRecycler
+		ConversionRate = 0.45 // How much of a parts mass will be recycled
+		ProductivityFactor = 0.02 // Recycle rate of each required resource in units/sec.
+		SpecialistEfficiencyFactor = 0.008 //Additional unit/sec of each resource that will be recycled, per experience star of the specialist.
+		ExperienceEffect = RepairSkill //Skill required for the increased efficiency.
+		UpkeepResource = ElectricCharge // This resource will be consumed 1 per second during processing
+		UpkeepAmount = 5.0 //How much upkeep resource to charge
+		MinimumCrew = 0 // Amount of Kerbals needed for the Recycler to work
+	}
+
+	MODULE
+	{
+		name = ModuleAnimateGeneric
+		animationName = WorkshopLights
+		actionGUIName = Toggle Lights
+		defaultActionGroup = Light
+		startEventGUIName = Lights On
+		endEventGUIName = Lights Off
+	}
+
+	RESOURCE
+	{
+		name = ElectricCharge
+		amount = 2000
+		maxAmount = 2000
+		isTweakable = false
+	}
+}

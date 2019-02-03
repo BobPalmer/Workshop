@@ -43,14 +43,6 @@ OSE Workshop is licensed under a Creative Commons Attribution-NonCommercial-Shar
 
 
 TODO
-Add Stock Settings page
-	Bool OriginalSettings, if true, the multipliers below are hard-set to 1 and unchangable
-	Multiplier for processing time, going from 1 to 1000
-	Multiplier for recycling time, going from 1 to 1000
-	Bool NoLocalRecycling
 
-	processing time:
-		Blueprint.cs, line 39, line 50
+	Add a complexity value to certain types of part; engines, science instruments, radios, etc.  The idea being that the more complex an item is, the longer it will take to print.  The use of this would be controlled by a settings option. 
 
-	Both processing & Recycling time:
-		Blueprint.cs: 13-18

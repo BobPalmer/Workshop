@@ -124,10 +124,14 @@
             }
             else
             {
-                LoadAvailableParts();
-                _showGui = true;
+                if (!WorkshopUtils.PreLaunch())
+                {
+                    LoadAvailableParts();
+                    _showGui = true;
+                }
             }
         }
+
 
         public OseModuleWorkshop()
         {
@@ -1117,7 +1121,7 @@
                 GUI.Box(new Rect(470, 80, 150, 100), blueprint.Print(adjustedProductivity), UI.UIStyles.StatsStyle);
                 GUI.Box(new Rect(200, 190, 420, 25), mouseOverItem.Part.title, UI.UIStyles.TitleDescriptionStyle);
                 GUI.Box(new Rect(200, 220, 420, 110), mouseOverItem.Part.description, UI.UIStyles.TooltipDescriptionStyle);
-            }
+             }
         }
     }
 }

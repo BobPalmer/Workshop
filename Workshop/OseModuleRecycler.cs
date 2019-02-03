@@ -93,7 +93,10 @@
             }
             else
             {
-                _showGui = true;
+                if (!WorkshopUtils.PreLaunch())
+                {
+                    _showGui = true;
+                }
             }
         }
 

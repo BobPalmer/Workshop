@@ -6,6 +6,7 @@ namespace Workshop.Recipes
     public class Recipe
     {
         public Dictionary<string, Ingredient> Ingredients;
+        public double Complexity = 0;
 
         public Recipe()
         {
@@ -16,13 +17,20 @@ namespace Workshop.Recipes
         {
             foreach (var ingredient in recipe.values.Cast<ConfigNode.Value>().Select(v => new Ingredient(v)))
             {
-                if (Ingredients.ContainsKey(ingredient.Name))
+                if (ingredient.Name == "Complexity")
                 {
-                    Ingredients[ingredient.Name].Ratio += ingredient.Ratio;
+                    Complexity += ingredient.Ratio;
                 }
                 else
                 {
-                    Ingredients[ingredient.Name] = ingredient;
+                    if (Ingredients.ContainsKey(ingredient.Name))
+                    {
+                        Ingredients[ingredient.Name].Ratio += ingredient.Ratio;
+                    }
+                    else
+                    {
+                        Ingredients[ingredient.Name] = ingredient;
+                    }
                 }
             }
         }

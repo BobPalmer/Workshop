@@ -22,7 +22,12 @@ namespace Workshop
             {
                 int crewCount = part.protoModuleCrew.Count;
                 if (crewCount == 0)
-                    return ProductivityFactor / (float)HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().processingTimeMultiplier;
+                {
+                    if (ptype == ProductivityType.printer)
+                        return adjustedProductivity / (float)(HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().processingTimeMultiplier * HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().overallTimeMultiplier);
+                    else
+                        return adjustedProductivity / (float)(HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().recyclingTimeMultiplier * HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().overallTimeMultiplier);
+                }
 
                 ProtoCrewMember worker;
                 GameParameters.AdvancedParams advancedParams = HighLogic.CurrentGame.Parameters.CustomParams<GameParameters.AdvancedParams>();
@@ -46,8 +51,9 @@ namespace Workshop
 
                         //Adjust for stupidity
                         if (WorkshopOptions.StupidityAffectsEfficiency)
+                        {
                             productivityBonus *= (1 - worker.stupidity);
-
+                        }
                         adjustedProductivity += productivityBonus;
                     }
                 }
@@ -56,10 +62,11 @@ namespace Workshop
             {
                 LogError("Error encountered while trying to calculate productivity bonus", ex);
             }
+
             if (ptype == ProductivityType.printer)
-                return adjustedProductivity / (float)HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().processingTimeMultiplier;
+                return adjustedProductivity / (float)(HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().processingTimeMultiplier * HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().overallTimeMultiplier);
             else
-                return adjustedProductivity / (float)HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().recyclingTimeMultiplier;
+                return adjustedProductivity / (float)(HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().recyclingTimeMultiplier * HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().overallTimeMultiplier);
         }
 
         public static float GetPackedPartVolume(AvailablePart part)
@@ -141,6 +148,19 @@ namespace Workshop
         {
             if (GameSettings.VERBOSE_DEBUG_LOG)
                 Log(message);
+        }
+
+        public static bool PreLaunch()
+        {
+            if (!HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().noLocalRecycling)
+                return true;
+            if (FlightGlobals.ActiveVessel.situation == Vessel.Situations.PRELAUNCH)
+                return true;
+            if (FlightGlobals.ActiveVessel.situation == Vessel.Situations.LANDED && (
+                FlightGlobals.ActiveVessel.LandedInKSC || FlightGlobals.ActiveVessel.LandedInStockLaunchSite))
+                return true;
+
+            return false;
         }
     }
 }

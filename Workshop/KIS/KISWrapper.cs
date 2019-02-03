@@ -445,8 +445,8 @@ namespace Workshop.W_KIS
 
 		public void StackRemove(int quantity)
 		{
-            ScreenMessages.PostScreenMessage("KIS removal of item from storage is disabled due to a bug outside of the Workshop", 10);
-            //_kis_item.StackRemove(quantity);
+            //ScreenMessages.PostScreenMessage("KIS removal of item from storage is disabled due to a bug outside of the Workshop", 10);
+            _kis_item.StackRemove(quantity);
 #if false
             int result = (int)kis_StackRemove.Invoke(_obj, new object[] { quantity });
 #endif

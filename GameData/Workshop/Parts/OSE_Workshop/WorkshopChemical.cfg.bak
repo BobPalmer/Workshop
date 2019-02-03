@@ -41,12 +41,12 @@ PART
 	MODULE:NEEDS[Workshop] 
 	{
 		name = OseModuleWorkshop
-		ProductivityFactor = 0.04           // Consumption rate of each required resource in units/sec.
-		SpecialistEfficiencyFactor = 0.008  //Additional unit/sec of each resource that will be consumed, per experience star of the specialist.
-		ExperienceEffect = RepairSkill      //Skill required for the increased efficiency.
-		UpkeepResource = ElectricCharge     // This resource will be consumed 1 per second during processing
-		UpkeepAmount = 1.0                  //How much upkeep resource to charge
-		MinimumCrew = 2                     // Amount of Kerbals needed for the Workshop to work
+		ProductivityFactor = 0.04 // Consumption rate of each required resource in units/sec.
+		SpecialistEfficiencyFactor = 0.008 //Additional unit/sec of each resource that will be consumed, per experience star of the specialist.
+		ExperienceEffect = RepairSkill //Skill required for the increased efficiency.
+		UpkeepResource = ElectricCharge // This resource will be consumed 1 per second during processing
+		UpkeepAmount = 1.0 //How much upkeep resource to charge
+		MinimumCrew = 2 // Amount of Kerbals needed for the Workshop to work
 	}
 
 	MODULE:NEEDS[Workshop]
@@ -89,7 +89,7 @@ PART
 	MODULE
 	{
 		name = ModuleResourceConverter
-		ConverterName = Ore to MaterialKits Converter
+		ConverterName = Ore Converter
 		StartActionName = Start Ore Processing
 		StopActionName = Stop Ore Processing
 		AutoShutdown = false

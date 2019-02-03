@@ -24,10 +24,20 @@ namespace Workshop
         [GameParameters.CustomParameterUI("No local recycling")]
         public bool noLocalRecycling = false;
 
-        [GameParameters.CustomFloatParameterUI("Processing time multiplier", minValue = 1, maxValue = 30f)]
+        [GameParameters.CustomParameterUI("Use complexity values")]
+        public bool useComplexity = true;
+
+        [GameParameters.CustomFloatParameterUI("Overall time multiplier", minValue = 1, maxValue = 30f,
+            toolTip ="This will apply to both processing time and recycling time equally")]
+        public double overallTimeMultiplier = 5;
+
+
+        [GameParameters.CustomFloatParameterUI("Processing time multiplier", minValue = 1, maxValue = 30f,
+            toolTip = "This will be applied to processing time only")]
         public double processingTimeMultiplier = 1;
 
-        [GameParameters.CustomFloatParameterUI("Recycling time multiplier", minValue = 1, maxValue = 30f)]
+        [GameParameters.CustomFloatParameterUI("Recycling time multiplier", minValue = 1, maxValue = 30f,
+            toolTip = "This will be applied to the recycling time only")]
         public double recyclingTimeMultiplier = 1;
 
         public override void SetDifficultyPreset(GameParameters.Preset preset)
@@ -37,24 +47,28 @@ namespace Workshop
             {
                 case GameParameters.Preset.Easy:
                     noLocalRecycling = false;
+                    overallTimeMultiplier = 1;
                     processingTimeMultiplier = 1f;
                     recyclingTimeMultiplier = 1f;
                     break;
 
                 case GameParameters.Preset.Normal:
                     noLocalRecycling = true;
+                    overallTimeMultiplier = 5;
                     processingTimeMultiplier = 10f;
                     recyclingTimeMultiplier = 10f;
                     break;
 
                 case GameParameters.Preset.Moderate:
                     noLocalRecycling = true;
+                    overallTimeMultiplier = 10;
                     processingTimeMultiplier = 20f;
                     recyclingTimeMultiplier = 20f;
                     break;
 
                 case GameParameters.Preset.Hard:
                     noLocalRecycling = true;
+                    overallTimeMultiplier = 15;
                     processingTimeMultiplier = 30f;
                     recyclingTimeMultiplier = 30f;
                     break;
