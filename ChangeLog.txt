@@ -33,3 +33,8 @@
 	Added an overall time multipler
 	Added tooltips to the multiplier fields in the setting screen
 	Added Complexity value to recipes (not yet implemented)
+
+1.2.7.4
+	Fixed PreLaunch check to allow opening if noLocalRecycling is false
+	Updated settings descriptoin of noLocalRecycling
+	Added tooltip to the noLocalRecycling

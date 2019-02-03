@@ -21,7 +21,8 @@ namespace Workshop
         public override bool HasPresets { get { return true; } }
 
 
-        [GameParameters.CustomParameterUI("No local recycling")]
+        [GameParameters.CustomParameterUI("No local printing or recycling",
+            toolTip = "No processing is allowed on any runway or launch facility")]
         public bool noLocalRecycling = false;
 
         [GameParameters.CustomParameterUI("Use complexity values")]
