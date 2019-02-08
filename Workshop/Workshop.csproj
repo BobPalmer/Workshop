@@ -89,6 +89,7 @@
     <Compile Include="UI\UIStyles.cs" />
     <Compile Include="WorkshopBlacklistItemsDatabase.cs" />
     <Compile Include="WorkshopBlacklistItemsLoader.cs" />
+    <Compile Include="WorkshopKACUtils.cs" />
     <Compile Include="WorkshopOptions.cs" />
     <Compile Include="WorkshopSettings.cs" />
     <Compile Include="WorkshopStyles.cs" />
@@ -112,34 +113,30 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
-rem copy "$(TargetDir)Workshop.dll"  "$(SolutionDir)\..\..\GameData\Workshop\Plugins" /Y
-rem (robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP\GameData\Workshop"   /E /V) 
-rem (robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP en\GameData\Workshop"   /E /V) 
-rem (robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP es\GameData\Workshop"   /E /V) 
-rem (robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP ru\GameData\Workshop"   /E /V) 
-rem (robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP jp\GameData\Workshop"   /E /V) 
-rem (robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP zh\GameData\Workshop"   /E /V) ^&amp;amp;amp; exit 0
 
 
 
 start /D D:\Users\jbb\github\Workshop /WAIT deploy.bat  $(TargetDir) $(TargetFileName)
 
+
+
+
 if $(ConfigurationName) == Release (
 
+
+
 	start /D D:\Users\jbb\github\Workshop /WAIT buildRelease.bat $(TargetDir) $(TargetFileName)
+
+
 
 )</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>
-rem rd /s /q "$(SolutionDir)\..\..\..\KSP\GameData\Workshop"
-rem rd /s /q "$(SolutionDir)\..\..\..\KSP en\GameData\Workshop"
-rem rd /s /q "$(SolutionDir)\..\..\..\KSP es\GameData\Workshop"
-rem rd /s /q "$(SolutionDir)\..\..\..\KSP ja\GameData\Workshop"
-rem rd /s /q "$(SolutionDir)\..\..\..\KSP zh\GameData\Workshop"
-rem rd /s /q "$(SolutionDir)\..\..\..\KSP ru\GameData\Workshop"
 
 set textTemplatingPath="%25ProgramFiles(x86)%25\Microsoft Visual Studio\2017\Community\Common7\IDE\texttransform.exe"
+
+
 
 %25textTemplatingPath%25 "$(ProjectDir)AssemblyVersion.tt</PreBuildEvent>
   </PropertyGroup>

@@ -9,11 +9,13 @@ namespace Workshop.Recipes
     public class Blueprint : List<WorkshopResource>, IConfigNode
     {
         public float Funds { get; set; }
+        public double Complexity { get; set; }
 
         public double GetProgress()
         {
             var totalAmount = this.Sum(r => r.Units);
             var totalProcessed = this.Sum(r => r.Processed);
+
             return totalProcessed / totalAmount;
         }
 
@@ -22,7 +24,7 @@ namespace Workshop.Recipes
             return this.Sum(r => r.Costs());
         }
 
-        public string Print(double productivity)
+        public string Print(WorkshopUtils.ProductivityType type, double productivity)
         {
             var sb = new StringBuilder();
             foreach (var res in this)
@@ -35,19 +37,30 @@ namespace Workshop.Recipes
                 sb.AppendLine("Resource costs: " + ResourceCosts().ToString("N1"));
                 sb.AppendLine("Funds: " + Funds);
             }
+            if (HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().useComplexity && type == WorkshopUtils.ProductivityType.printer)
+                sb.AppendLine("Complexity: " + Complexity);
+            var duration = this.Sum(r => r.Units) / (productivity);
 
-            var duration = this.Sum(r => r.Units) / productivity;
-            
-            sb.Append(KSPUtil.PrintTime(duration, 5, false));
+            sb.AppendLine("Base duration: " + KSPUtil.PrintTime(duration, 5, false));
+            if (type == WorkshopUtils.ProductivityType.printer)
+                duration = this.Sum(r => r.Units) / (productivity / Complexity);
+            else
+                duration = this.Sum(r => r.Units) / (productivity);
+
+            if (type == WorkshopUtils.ProductivityType.printer)
+                sb.Append("Complexity duration: " + KSPUtil.PrintTime(duration, 5, false));
 
             return sb.ToString();
         }
 
-        public double GetBuildTime(double productivity)
+        public double GetBuildTime(WorkshopUtils.ProductivityType type, double productivity)
         {
             var totalAmount = this.Sum(r => r.Units);
             var totalProcessed = this.Sum(r => r.Processed);
-            return (totalAmount - totalProcessed) / productivity;
+            if (type == WorkshopUtils.ProductivityType.printer)
+                return (totalAmount - totalProcessed) / (productivity / Complexity) ;
+            else
+                return (totalAmount - totalProcessed) / (productivity);
         }
 
         public void Load(ConfigNode node)
@@ -56,6 +69,12 @@ namespace Workshop.Recipes
             {
                 Funds = float.Parse(node.GetValue("Funds"));
             }
+            if (node.HasValue("Complexity"))
+            {
+                Complexity = float.Parse(node.GetValue("Complexity"));
+            }
+            else
+                Complexity = 1;
             foreach (var configNode in node.GetNodes("WorkshopResource"))
             {
                 var resource = new WorkshopResource();
@@ -67,6 +86,7 @@ namespace Workshop.Recipes
         public void Save(ConfigNode node)
         {
             node.AddValue("Funds", Funds);
+            node.AddValue("Complexity", Complexity);
             foreach (var resource in this)
             {
                 var n = node.AddNode("WorkshopResource");

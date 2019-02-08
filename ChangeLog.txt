@@ -1,4 +1,4 @@
-1.2.7
+﻿1.2.7
 	Fixed null ref when going into the workshop the first time without any parts in the queue
 	Added missing bulkheadProfiles to parts
 	Fixed nullref in the Workshop when hitting the trashcan when nothing was in queue
@@ -38,3 +38,28 @@
 	Fixed PreLaunch check to allow opening if noLocalRecycling is false
 	Updated settings descriptoin of noLocalRecycling
 	Added tooltip to the noLocalRecycling
+
+1.2.7.5
+	Fixed error of multiple recipes for a part being ignored (only used the first)
+	Enabled Complexity, used for printing only (recycling already had a delay)
+	Fixed nullref after canceling manufacturing
+	Fixed nullrefs from KAC after canceling recycling
+	Added to the ModuleAnimateGeneric in the workshops to get rid of the "locked" message in the PAW:		
+		showStatus = false
+	Added alarm clock functionality to recycling
+	Added settings options to control whether KAC alarms are set
+	Implemented changes in part functionality when being used standalone:
+		Regarding the stand-alone tech:
+
+			* 3D Printing Lab, Advanced Exploration.  Can print parts
+			* Recycling, Field Science (using the AICore part), Can recycle parts into what they were made from.  45% recovery
+			* Ore Processing﻿, Advanced Science Tech, can process ore into MaterialKits
+			* Material Extractor, Advanced Science Tech, can process ore into MaterialKits, Dirt into ExoticMinerals and RareMetals
+
+		Stock scanners and drills, Adding Dirt,ExoticMinerals and RareMetals to stock scanners and drills
+		if EL, MKS  is installed:
+
+			* 3D Printing Lab, Advanced Exploration, can print parts, can recycle parts
+			* Workshop AI Core, Field Science, can print parts, can recycle parts, automated
+			* Workshop Chemical, Advanced Science Tech, can print parts, can recycle parts, can convert ore to MaterialKits
+			* Material Extractor, Advanced Science Tech, can process ore into MaterialKits, Dirt into ExoticMinerals and RareMetals

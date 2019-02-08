@@ -9,7 +9,7 @@
     using Recipes;
     using System.Text;
 
-    public class OseModuleRecycler : PartModule
+    public partial class OseModuleRecycler : PartModule
     {
         private const double kBackgroundProcessInterval = 3600;
 
@@ -65,7 +65,12 @@
         public float SpecialistEfficiencyFactor = 0.02f;
 
         [KSPField(guiName = "Recycler Status", guiActive = true)]
-        public string Status = "Online";
+        public string RecyclerStatus = "Online";
+
+        [KSPField(isPersistant = true)]
+        public string KACAlarmID = string.Empty;
+        KACWrapper.KACAPI.KACAlarm kacAlarm = null;
+        int kacAlarmIndex = -1;
 
         protected float adjustedProductivity = 1.0f;
 
@@ -96,6 +101,10 @@
                 if (!WorkshopUtils.PreLaunch())
                 {
                     _showGui = true;
+                }
+                else
+                {
+                    ScreenMessages.PostScreenMessage("Recycler is in travel mode, unable to print at this time", 5, ScreenMessageStyle.UPPER_CENTER);
                 }
             }
         }
@@ -129,13 +138,20 @@
 
         public override void OnStart(StartState state)
         {
+            //Init the KAC Wrapper. KAC Wrapper courtey of TriggerAu
+            KACWrapper.InitKACWrapper();
+            if (KACWrapper.APIReady)
+            {
+                KACWrapper.KAC.onAlarmStateChanged += KAC_onAlarmStateChanged;
+            }
+
             if (HighLogic.LoadedSceneIsFlight && WorkshopSettings.IsKISAvailable)
             {
                 GameEvents.onVesselChange.Add(OnVesselChange);
             }
             else
             {
-                Fields["Status"].guiActive = false;
+                Fields["RecyclerStatus"].guiActive = false;
                 Events["ContextMenuOnOpenRecycler"].guiActive = false;
             }
             base.OnStart(state);
@@ -210,6 +226,8 @@
             try
             {
                 UpdateProductivity();
+                if (HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().setRecycleKAC)
+                    updateKACAlarm();
 
                 ApplyPaging();
 
@@ -252,7 +270,7 @@
 
             if (recyclingPaused)
             {
-                Status = "Paused";
+                RecyclerStatus = "Paused";
             }
             else if (progress >= 100)
             {
@@ -302,21 +320,22 @@
         private double ExecuteManufacturing(double deltaTime)
         {
             var resourceToProduce = _processedBlueprint.First(r => r.Processed < r.Units);
-            var unitsToProduce = Math.Min(resourceToProduce.Units - resourceToProduce.Processed, deltaTime * adjustedProductivity) / (float)HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().recyclingTimeMultiplier;
-
+            var unitsToProduce = Math.Min(resourceToProduce.Units - resourceToProduce.Processed,
+                                           deltaTime * adjustedProductivity); 
+;
             if (part.protoModuleCrew.Count < MinimumCrew)
             {
-                Status = "Not enough Crew to operate";
+                RecyclerStatus = "Not enough Crew to operate";
             }
             else if (_broker.AmountAvailable(part, UpkeepResource, TimeWarp.deltaTime, ResourceFlowMode.ALL_VESSEL) < TimeWarp.deltaTime)
             {
-                Status = "Not enough " + UpkeepResource;
+                RecyclerStatus = "Not enough " + UpkeepResource;
             }
             else
             {
-                Status = "Recycling " + _processedItem.Part.title;
+                RecyclerStatus = "Recycling " + _processedItem.Part.title;
                 _broker.RequestResource(part, UpkeepResource, UpkeepAmount, TimeWarp.deltaTime, ResourceFlowMode.ALL_VESSEL);
-                _broker.StoreResource(part, resourceToProduce.Name, unitsToProduce, TimeWarp.deltaTime, ResourceFlowMode.ALL_VESSEL);
+
                 resourceToProduce.Processed += unitsToProduce;
                 progress = (float)(_processedBlueprint.GetProgress() * 100);
             }
@@ -328,13 +347,25 @@
         private void FinishManufacturing()
         {
             ScreenMessages.PostScreenMessage("Recycling of " + _processedItem.Part.title + " finished.", 5, ScreenMessageStyle.UPPER_CENTER);
+
+
             CleanupRecycler();
         }
 
         private void CancelManufacturing()
         {
-            ScreenMessages.PostScreenMessage("Recycling of " + _processedItem.Part.title + " cancelled.", 5, ScreenMessageStyle.UPPER_CENTER);
-            CleanupRecycler();
+            if (_processedItem != null && _processedItem.Part != null)
+            {
+                ScreenMessages.PostScreenMessage("Recycling of " + _processedItem.Part.title + " cancelled.", 5, ScreenMessageStyle.UPPER_CENTER);
+                CleanupRecycler();
+            }
+            else
+            {
+                if (_processedItem == null)
+                    Log.Info("_processedItem is null");
+                else
+                    Log.Info("_processedItem.Part is null");
+            }
             recyclingPaused = false;
         }
 
@@ -344,7 +375,9 @@
             _processedItem = null;
             _processedBlueprint = null;
             progress = 0;
-            Status = "Online";
+            RecyclerStatus = "Online";
+
+            deleteKACAlarm();
         }
 
         public override void OnInactive()
@@ -427,7 +460,6 @@
                         {
                             _queue.Add(new WorkshopItem(item.Value.availablePart));
                             item.Value.StackRemove(1);
-                            Log.Info("After StackRemove");
                         }
                         if (item.Value.stackable)
                         {
@@ -507,7 +539,7 @@
                 }
                 GUI.Box(new Rect(200, 80, 100, 100), mouseOverItem.Icon.texture);
                 GUI.Box(new Rect(310, 80, 150, 100), WorkshopUtils.GetKisStats(mouseOverItem.Part), UI.UIStyles.StatsStyle);
-                GUI.Box(new Rect(470, 80, 150, 100), blueprint.Print(adjustedProductivity), UI.UIStyles.StatsStyle);
+                GUI.Box(new Rect(470, 80, 150, 100), blueprint.Print(WorkshopUtils.ProductivityType.recycler, adjustedProductivity), UI.UIStyles.StatsStyle);
                 GUI.Box(new Rect(200, 190, 420, 25), mouseOverItem.Part.title, UI.UIStyles.TitleDescriptionStyle);
                 GUI.Box(new Rect(200, 220, 420, 110), mouseOverItem.Part.description, UI.UIStyles.TooltipDescriptionStyle);
             }
@@ -520,7 +552,7 @@
                 }
                 GUI.Box(new Rect(200, 80, 100, 100), mouseOverItemKIS.Icon.texture);
                 GUI.Box(new Rect(310, 80, 150, 100), WorkshopUtils.GetKisStats(mouseOverItemKIS.availablePart), UI.UIStyles.StatsStyle);
-                GUI.Box(new Rect(470, 80, 150, 100), blueprint.Print(adjustedProductivity), UI.UIStyles.StatsStyle);
+                GUI.Box(new Rect(470, 80, 150, 100), blueprint.Print(WorkshopUtils.ProductivityType.recycler, adjustedProductivity), UI.UIStyles.StatsStyle);
                 GUI.Box(new Rect(200, 190, 420, 25), mouseOverItemKIS.availablePart.title, UI.UIStyles.TitleDescriptionStyle);
                 GUI.Box(new Rect(200, 220, 420, 110), mouseOverItemKIS.availablePart.description, UI.UIStyles.TooltipDescriptionStyle);
             }
@@ -554,7 +586,7 @@
             }
             string progressText = "";
             if (_processedBlueprint != null)
-                progressText = string.Format("Progress: {0:n1}%, T- ", progress) + KSPUtil.PrintTime(_processedBlueprint.GetBuildTime(adjustedProductivity), 5, false);
+                progressText = string.Format("Progress: {0:n1}%, T- ", progress) + KSPUtil.PrintTime(_processedBlueprint.GetBuildTime(WorkshopUtils.ProductivityType.recycler, adjustedProductivity), 5, false);
             GUI.Label(new Rect(250, 620, 260, 50), " " + progressText);
 
             // Toolbar

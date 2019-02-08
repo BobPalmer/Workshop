@@ -152,7 +152,7 @@ namespace Workshop
 
         public static bool PreLaunch()
         {
-            if (!HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().noLocalRecycling)
+            if (!HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().noLocalProcessing)
                 return false;
             if (FlightGlobals.ActiveVessel.situation == Vessel.Situations.PRELAUNCH)
                 return true;

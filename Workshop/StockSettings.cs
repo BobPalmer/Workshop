@@ -23,23 +23,34 @@ namespace Workshop
 
         [GameParameters.CustomParameterUI("No local printing or recycling",
             toolTip = "No processing is allowed on any runway or launch facility")]
-        public bool noLocalRecycling = false;
+        public bool noLocalProcessing = false;
 
-        [GameParameters.CustomParameterUI("Use complexity values")]
+        [GameParameters.CustomParameterUI("Use complexity values",
+            toolTip = "Only available if recipes are used")]
         public bool useComplexity = true;
+
+        [GameParameters.CustomParameterUI("Create Kerbal Alarm Clock alarms during printing",
+            toolTip ="Only useful if Kerbal Alarm Clock is installed")]
+        public bool setPrintKAC = true;
+
+        [GameParameters.CustomParameterUI("Create Kerbal Alarm Clock alarms during recycling",
+                    toolTip = "Only useful if Kerbal Alarm Clock is installed")]
+        public bool setRecycleKAC = true;
 
         [GameParameters.CustomFloatParameterUI("Overall time multiplier", minValue = 1, maxValue = 30f,
             toolTip ="This will apply to both processing time and recycling time equally")]
-        public double overallTimeMultiplier = 5;
+        public double overallTimeMultiplier = 1;
 
 
         [GameParameters.CustomFloatParameterUI("Processing time multiplier", minValue = 1, maxValue = 30f,
             toolTip = "This will be applied to processing time only")]
         public double processingTimeMultiplier = 1;
 
-        [GameParameters.CustomFloatParameterUI("Recycling time multiplier", minValue = 1, maxValue = 30f,
+        [GameParameters.CustomFloatParameterUI("Recycling time multiplier", minValue = 1, maxValue = 5f,
             toolTip = "This will be applied to the recycling time only")]
         public double recyclingTimeMultiplier = 1;
+
+
 
         public override void SetDifficultyPreset(GameParameters.Preset preset)
         {
@@ -47,31 +58,31 @@ namespace Workshop
             switch (preset)
             {
                 case GameParameters.Preset.Easy:
-                    noLocalRecycling = false;
+                    noLocalProcessing = false;
                     overallTimeMultiplier = 1;
                     processingTimeMultiplier = 1f;
                     recyclingTimeMultiplier = 1f;
                     break;
 
                 case GameParameters.Preset.Normal:
-                    noLocalRecycling = true;
-                    overallTimeMultiplier = 5;
+                    noLocalProcessing = true;
+                    overallTimeMultiplier = 1;
                     processingTimeMultiplier = 10f;
-                    recyclingTimeMultiplier = 10f;
+                    recyclingTimeMultiplier = 2f;
                     break;
 
                 case GameParameters.Preset.Moderate:
-                    noLocalRecycling = true;
-                    overallTimeMultiplier = 10;
+                    noLocalProcessing = true;
+                    overallTimeMultiplier = 2;
                     processingTimeMultiplier = 20f;
-                    recyclingTimeMultiplier = 20f;
+                    recyclingTimeMultiplier = 3f;
                     break;
 
                 case GameParameters.Preset.Hard:
-                    noLocalRecycling = true;
-                    overallTimeMultiplier = 15;
+                    noLocalProcessing = true;
+                    overallTimeMultiplier = 3;
                     processingTimeMultiplier = 30f;
-                    recyclingTimeMultiplier = 30f;
+                    recyclingTimeMultiplier = 5f;
                     break;
             }
         }

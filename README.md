@@ -1,4 +1,4 @@
-OSE Workshop - KIS Addon
+﻿OSE Workshop - KIS Addon
 ===
 
 This is the repository for the OSE Workshop mod for [Kerbal Space Program](http://kerbalspaceprogram.com)
@@ -44,5 +44,18 @@ OSE Workshop is licensed under a Creative Commons Attribution-NonCommercial-Shar
 
 TODO
 
-	Add a complexity value to certain types of part; engines, science instruments, radios, etc.  The idea being that the more complex an item is, the longer it will take to print.  The use of this would be controlled by a settings option. 
 
+Regarding the stand-alone tech:
+
+	* 3D Printing Lab, Advanced Exploration.  Can print parts
+	* Recycling, Field Science (using the AICore part), Can recycle parts into what they were made from.  45% recovery
+	* Ore Processing﻿, Advanced Science Tech, can process ore into MaterialKits
+	* Material Extractor, Advanced Science Tech, can process ore into MaterialKits, Dirt into ExoticMinerals and RareMetals
+
+Stock scanners and drills, Adding Dirt,ExoticMinerals and RareMetals to stock scanners and drills
+if EL, MKS  is installed:
+
+	* 3D Printing Lab, Advanced Exploration, can print parts, can recycle parts
+	* Workshop AI Core, Field Science, can print parts, can recycle parts, automated
+	* Workshop Chemical, Advanced Science Tech, can print parts, can recycle parts, can convert ore to MaterialKits
+	* Material Extractor, Advanced Science Tech, can process ore into MaterialKits, Dirt into ExoticMinerals and RareMetals

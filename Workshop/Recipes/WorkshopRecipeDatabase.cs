@@ -26,11 +26,14 @@ namespace Workshop.Recipes
         {
             var resources = new Dictionary<string, WorkshopResource>();
             List<WorkshopResource> prepResources = null;
+            double complexity = 1;
 
             //Use part recipe
             if (PartRecipes.ContainsKey(part.name) && WorkshopOptions.EnableRecipes)
             {
                 prepResources = PartRecipes[part.name].Prepare(part.partPrefab.mass);
+                if (HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().useComplexity)
+                    complexity += PartRecipes[part.name].Complexity;
             }
 
             //Use workshop recipe override
@@ -82,15 +85,19 @@ namespace Workshop.Recipes
 
             var blueprint = new Blueprint();
             blueprint.AddRange(resources.Values);
+            blueprint.Complexity = complexity;
             blueprint.Funds = Mathf.Max(0, part.cost - (float)blueprint.ResourceCosts());
             return blueprint;
         }
 
         public static Blueprint ProcessFactoryPart(AvailablePart part)
         {
+            double complexity = 1;
             var resources = new Dictionary<string, WorkshopResource>();
             if (PartRecipes.ContainsKey(part.name))
             {
+                if (HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().useComplexity)
+                    complexity += PartRecipes[part.name].Complexity;
                 var recipe = FactoryRecipes[part.name];
                 foreach (var workshopResource in recipe.Prepare(part.partPrefab.mass))
                 {
@@ -111,6 +118,7 @@ namespace Workshop.Recipes
             }
             var blueprint = new Blueprint();
             blueprint.AddRange(resources.Values);
+            blueprint.Complexity = complexity;
             blueprint.Funds = Mathf.Max(part.cost - (float)blueprint.ResourceCosts(), 0); 
             return blueprint;
         }

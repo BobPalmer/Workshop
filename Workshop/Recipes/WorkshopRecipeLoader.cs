@@ -49,10 +49,14 @@ namespace Workshop.Recipes
                 var partName = partNode.GetValue("name").Replace('_', '.');
                 if (partNode.HasNode("OSE_PartRecipe"))
                 {
-                    var recipeNode = partNode.GetNode("OSE_PartRecipe");
-                    var recipe = new Recipe(recipeNode);
+                    var recipe = new Recipe();
                     Status = "Loading PartRecipe for " + partName;
                     print("[OSE] - Loading PartRecipe for " + partName);
+                    var r = partNode.GetNodes("OSE_PartRecipe");
+                    foreach (var  recipeNode in r)
+                    {
+                        recipe.Add(recipeNode);                       
+                    }
                     WorkshopRecipeDatabase.PartRecipes[partName] = recipe;
                 }
                 yield return null;

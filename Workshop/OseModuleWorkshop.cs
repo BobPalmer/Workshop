@@ -129,6 +129,10 @@
                     LoadAvailableParts();
                     _showGui = true;
                 }
+                else
+                {
+                    ScreenMessages.PostScreenMessage("3D Printer is in travel mode, unable to print at this time", 5, ScreenMessageStyle.UPPER_CENTER);
+                }
             }
         }
 
@@ -209,6 +213,8 @@
                 kacAlarm.Notes = this.part.vessel.vesselName + " completed print job.";
                 KACWrapper.KAC.Alarms[kacAlarmIndex] = kacAlarm;
             }
+            else
+                Log.Info("setKACAlarm, alarm not set");
         }
 
         KACWrapper.KACAPI.KACAlarm getKACAlarm()
@@ -238,6 +244,7 @@
                 return;
             if (!KACWrapper.APIReady)
                 return;
+
             if (_queue.Count == 0 && _processedBlueprint == null)
             {
                 deleteKACAlarm();
@@ -249,10 +256,10 @@
             int totalItems = _queue.Count;
             for (int index = 0; index < totalItems; index++)
             {
-                totalPrintTime += _queue[index].PartBlueprint.GetBuildTime(adjustedProductivity);
+                totalPrintTime += _queue[index].PartBlueprint.GetBuildTime(WorkshopUtils.ProductivityType.printer, adjustedProductivity);
             }
             if (_processedBlueprint != null)
-                totalPrintTime += _processedBlueprint.GetBuildTime(adjustedProductivity);
+                totalPrintTime += _processedBlueprint.GetBuildTime(WorkshopUtils.ProductivityType.printer, adjustedProductivity);
 
             //Create the alarm if needed.
             if (string.IsNullOrEmpty(KACAlarmID))
@@ -264,8 +271,7 @@
                 //Find the alarm if needed and then update it
                 if (kacAlarm == null)
                 {
-                    int totalAlarms = KACWrapper.KAC.Alarms.Count;
-                    for (int index = 0; index < totalAlarms; index++)
+                    for (int index = KACWrapper.KAC.Alarms.Count - 1; index >= 0; index--)
                     {
                         kacAlarm = KACWrapper.KAC.Alarms[index];
                         if (KACWrapper.KAC.Alarms[index].ID == KACAlarmID)
@@ -282,16 +288,27 @@
                 else
                 {
                     kacAlarm.AlarmTime = Planetarium.GetUniversalTime() + totalPrintTime;
-                    KACWrapper.KAC.Alarms[kacAlarmIndex] = kacAlarm;
+                    if (kacAlarmIndex >= KACWrapper.KAC.Alarms.Count || KACWrapper.KAC.Alarms[kacAlarmIndex].ID != kacAlarm.ID)
+                    {
+                        kacAlarmIndex = -1;
+                        for (int index = KACWrapper.KAC.Alarms.Count - 1; index >= 0; index--)
+                        {
+                            kacAlarm = KACWrapper.KAC.Alarms[index];
+                            if (KACWrapper.KAC.Alarms[index].ID == kacAlarm.ID)
+                            {
+                                kacAlarmIndex = index;
+                                break;
+                            }
+                        }
+                    }
+                    if (kacAlarmIndex >= 0)    
+                        KACWrapper.KAC.Alarms[kacAlarmIndex] = kacAlarm;
                 }
             }
         }
 
         void deleteKACAlarm()
         {
-            KACAlarmID = string.Empty;
-            kacAlarm = null;
-
             if (KACWrapper.AssemblyExists && KACWrapper.APIReady && !string.IsNullOrEmpty(KACAlarmID))
             {
                 int totalAlarms = KACWrapper.KAC.Alarms.Count;
@@ -300,10 +317,15 @@
                     if (KACWrapper.KAC.Alarms[index].ID == KACAlarmID)
                     {
                         KACWrapper.KAC.DeleteAlarm(KACAlarmID);
+                        KACAlarmID = string.Empty;
+                        kacAlarm = null;
                         return;
                     }
                 }
             }
+            KACAlarmID = string.Empty;
+            kacAlarm = null;
+            Log.Info("Alarm not deleted");
         }
 
         public override void OnLoad(ConfigNode node)
@@ -585,8 +607,8 @@
                 UpdateProductivity();
 
                 ApplyFilter();
-
-                updateKACAlarm();
+                if (HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().setPrintKAC)
+                    updateKACAlarm();
 
                 if (lastUpdateTime == 0)
                 {
@@ -739,7 +761,7 @@
             var resourceToConsume = _processedBlueprint.First(r => r.Processed < r.Units);
 
             //Determine the number of units of the resource to consume.
-            var unitsToConsume = Math.Min(resourceToConsume.Units - resourceToConsume.Processed, deltaTime * adjustedProductivity);
+            var unitsToConsume = Math.Min(resourceToConsume.Units - resourceToConsume.Processed, deltaTime * adjustedProductivity / _processedBlueprint.Complexity);
 
             if (part.protoModuleCrew.Count < MinimumCrew)
             {
@@ -972,7 +994,7 @@
 
             string progressText = "";
             if (_processedBlueprint != null)
-                progressText = string.Format("Progress: {0:n1}%, T- ", progress) + KSPUtil.PrintTime(_processedBlueprint.GetBuildTime(adjustedProductivity), 5, false);
+                progressText = string.Format("Progress: {0:n1}%, T- ", progress) + KSPUtil.PrintTime(_processedBlueprint.GetBuildTime(WorkshopUtils.ProductivityType.printer, adjustedProductivity), 5, false);
             GUI.Label(new Rect(250, 620, 280, 50), " " + progressText);
 
             //Pause/resume production
@@ -1118,7 +1140,7 @@
                 var blueprint = WorkshopRecipeDatabase.ProcessPart(mouseOverItem.Part);
                 GUI.Box(new Rect(200, 80, 100, 100), mouseOverItem.Icon.texture);
                 GUI.Box(new Rect(310, 80, 150, 100), WorkshopUtils.GetKisStats(mouseOverItem.Part), UI.UIStyles.StatsStyle);
-                GUI.Box(new Rect(470, 80, 150, 100), blueprint.Print(adjustedProductivity), UI.UIStyles.StatsStyle);
+                GUI.Box(new Rect(470, 80, 150, 100), blueprint.Print(WorkshopUtils.ProductivityType.printer, adjustedProductivity), UI.UIStyles.StatsStyle);
                 GUI.Box(new Rect(200, 190, 420, 25), mouseOverItem.Part.title, UI.UIStyles.TitleDescriptionStyle);
                 GUI.Box(new Rect(200, 220, 420, 110), mouseOverItem.Part.description, UI.UIStyles.TooltipDescriptionStyle);
              }

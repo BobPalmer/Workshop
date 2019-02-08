@@ -1,4 +1,4 @@
-//Adding Addon Modules to stockparts
+//AddingAddonModulestostockparts
 @PART[Large_Crewed_Lab]
 {
 	MODULE
@@ -24,7 +24,7 @@
 }
 
 
-// Adding Dirt,ExoticMinerals and RareMetals to stock scanners and drills
+//AddingDirt,ExoticMineralsandRareMetalstostockscannersanddrills
 @PART[MiniDrill]
 {
 	MODULE
@@ -336,7 +336,7 @@
 	}
 }
 
-//Inventory preference option toparts with KIS inventories
+//InventorypreferenceoptiontopartswithKISinventories
 @PART[*]:HAS[@MODULE[ModuleKISInventory]]:FINAL
 {
 	MODULE
@@ -346,7 +346,7 @@
 }
 
 
-//Productivity for Extraplanetary Launchpads
+//ProductivityforExtraplanetaryLaunchpads
 @PART[OSE_Workshop]:NEEDS[Launchpad]
 {
 	MODULE
@@ -357,7 +357,7 @@
 }
 
 
-//Icon for the Alternate Resource Panel
+//IconfortheAlternateResourcePanel
 @RESOURCE_DEFINITION[MaterialKits]
 {
 	ksparpicon = Workshop/Assets/MKitsIcon

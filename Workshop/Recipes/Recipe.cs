@@ -13,6 +13,28 @@ namespace Workshop.Recipes
             Ingredients = new Dictionary<string, Ingredient>();
         }
 
+        public void Add(ConfigNode recipe)
+        {
+            foreach (var ingredient in recipe.values.Cast<ConfigNode.Value>().Select(v => new Ingredient(v)))
+            {
+                if (ingredient.Name == "Complexity")
+                {
+                    Complexity += ingredient.Ratio;
+                }
+                else
+                {
+                    if (Ingredients.ContainsKey(ingredient.Name))
+                    {
+                        Ingredients[ingredient.Name].Ratio += ingredient.Ratio;
+                    }
+                    else
+                    {
+                        Ingredients[ingredient.Name] = ingredient;
+                    }
+                }
+            }
+        }
+
         public Recipe(ConfigNode recipe):this()
         {
             foreach (var ingredient in recipe.values.Cast<ConfigNode.Value>().Select(v => new Ingredient(v)))
