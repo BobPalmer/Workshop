@@ -63,3 +63,10 @@
 			* Workshop AI Core, Field Science, can print parts, can recycle parts, automated
 			* Workshop Chemical, Advanced Science Tech, can print parts, can recycle parts, can convert ore to MaterialKits
 			* Material Extractor, Advanced Science Tech, can process ore into MaterialKits, Dirt into ExoticMinerals and RareMetals
+
+1.2.7.6
+	Added code to make the "Open ..." change to "Close ..." when module is open
+	Added support for the clickThruFix
+	Added alternate skin
+	Remvoed mod version from Workshop window title
+	Fixed exceptions when alarm is deleted from KAC by hand

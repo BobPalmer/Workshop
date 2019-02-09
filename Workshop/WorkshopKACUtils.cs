@@ -111,7 +111,7 @@ namespace Workshop
                 else
                 {
                     kacAlarm.AlarmTime = Planetarium.GetUniversalTime() + totalRecycleTime;
-                    if (kacAlarmIndex >= KACWrapper.KAC.Alarms.Count || KACWrapper.KAC.Alarms[kacAlarmIndex].ID != kacAlarm.ID)
+                    if (kacAlarmIndex < 0 || kacAlarmIndex >= KACWrapper.KAC.Alarms.Count || KACWrapper.KAC.Alarms[kacAlarmIndex].ID != kacAlarm.ID)
                     {
                         kacAlarmIndex = -1;
                         for (int index = KACWrapper.KAC.Alarms.Count - 1; index >= 0; index--)

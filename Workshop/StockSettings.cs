@@ -20,7 +20,6 @@ namespace Workshop
         public override int SectionOrder { get { return 2; } }
         public override bool HasPresets { get { return true; } }
 
-
         [GameParameters.CustomParameterUI("No local printing or recycling",
             toolTip = "No processing is allowed on any runway or launch facility")]
         public bool noLocalProcessing = false;
@@ -85,6 +84,48 @@ namespace Workshop
                     recyclingTimeMultiplier = 5f;
                     break;
             }
+        }
+
+        public override bool Enabled(MemberInfo member, GameParameters parameters)
+        {
+            return true; //otherwise return true
+        }
+
+        public override bool Interactible(MemberInfo member, GameParameters parameters)
+        {
+
+            return true;
+            //            return true; //otherwise return true
+        }
+
+        public override IList ValidValues(MemberInfo member)
+        {
+            return null;
+        }
+
+    }
+
+
+
+    // http://forum.kerbalspaceprogram.com/index.php?/topic/147576-modders-notes-for-ksp-12/#comment-2754813
+    // search for "Mod integration into Stock Settings
+    public class Workshop_MiscSettings : GameParameters.CustomParameterNode
+    {
+        public override string Title { get { return "Misc"; } } // column heading
+        public override GameParameters.GameMode GameMode { get { return GameParameters.GameMode.ANY; } }
+        public override string Section { get { return "Workshop"; } }
+        public override string DisplaySection { get { return "Misc"; } }
+        public override int SectionOrder { get { return 3; } }
+        public override bool HasPresets { get { return true; } }
+
+        [GameParameters.CustomParameterUI("Use alternate skin")]
+        public bool useAlternateSkin = false;
+
+       
+
+        public override void SetDifficultyPreset(GameParameters.Preset preset)
+        {
+
         }
 
         public override bool Enabled(MemberInfo member, GameParameters parameters)

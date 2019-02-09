@@ -13,6 +13,8 @@
     using System.Reflection;
     using System.Text;
 
+    using ClickThroughFix;
+
     public class OseModuleWorkshop : PartModule
     {
         private const double kBackgroundProcessInterval = 3600f;
@@ -268,6 +270,7 @@
             }
             else
             {
+
                 //Find the alarm if needed and then update it
                 if (kacAlarm == null)
                 {
@@ -288,8 +291,10 @@
                 else
                 {
                     kacAlarm.AlarmTime = Planetarium.GetUniversalTime() + totalPrintTime;
-                    if (kacAlarmIndex >= KACWrapper.KAC.Alarms.Count || KACWrapper.KAC.Alarms[kacAlarmIndex].ID != kacAlarm.ID)
+                    if (kacAlarmIndex < 0 || kacAlarmIndex >= KACWrapper.KAC.Alarms.Count || KACWrapper.KAC.Alarms[kacAlarmIndex].ID != kacAlarm.ID)
                     {
+                        Log.Info("updateKACAlarm 7");
+
                         kacAlarmIndex = -1;
                         for (int index = KACWrapper.KAC.Alarms.Count - 1; index >= 0; index--)
                         {
@@ -301,6 +306,8 @@
                             }
                         }
                     }
+                    Log.Info("updateKACAlarm 8");
+
                     if (kacAlarmIndex >= 0)    
                         KACWrapper.KAC.Alarms[kacAlarmIndex] = kacAlarm;
                 }
@@ -602,6 +609,12 @@
         {
             if (!HighLogic.LoadedSceneIsFlight)
                 return;
+
+            if (_showGui)
+                Events["ContextMenuOpenWorkbench"].guiName = "Close OSE Workbench";
+            else
+                Events["ContextMenuOpenWorkbench"].guiName = "Open OSE Workbench";
+
             try
             {
                 UpdateProductivity();
@@ -938,13 +951,53 @@
             }
         }
 
+        GUIStyle window;
+        bool windowInitted = false;
+
         private void DrawWindow()
         {
-            GUI.skin = HighLogic.Skin;
+            if (!HighLogic.CurrentGame.Parameters.CustomParams<Workshop_MiscSettings>().useAlternateSkin)
+                GUI.skin = HighLogic.Skin;
+            else
+                GUI.color = Color.grey;
+
+            if (!windowInitted && HighLogic.CurrentGame.Parameters.CustomParams<Workshop_MiscSettings>().useAlternateSkin)
+            {
+                windowInitted = true;
+                window = new GUIStyle(HighLogic.Skin.window);
+
+                window.active.background = window.normal.background;
+
+                Texture2D tex = window.normal.background; //.CreateReadable();
+
+                var pixels = tex.GetPixels32();
+
+                for (int i = 0; i < pixels.Length; ++i)
+                    pixels[i].a = 255;
+
+                tex.SetPixels32(pixels); tex.Apply();
+                //#if DEBUG
+                //                tex.SaveToDisk("usermodified_window_bkg.png");
+                //#endif
+                // one of these apparently fixes the right thing
+                // window.onActive.background =
+                // window.onFocused.background =
+                // window.onNormal.background =
+                //window.onHover.background =
+                window.active.background =
+                window.focused.background =
+                //window.hover.background =
+                window.normal.background = tex;
+            }
+
             GUI.skin.label.alignment = TextAnchor.MiddleCenter;
             GUI.skin.button.alignment = TextAnchor.MiddleCenter;
 
-            _windowPos = GUI.Window(GetInstanceID(), _windowPos, DrawWindowContents, "Workbench (" + _maxVolume + " litres - " + _filters[_activeFilterId] + ") v." + modVersion.ToString());
+            if (!HighLogic.CurrentGame.Parameters.CustomParams<Workshop_MiscSettings>().useAlternateSkin)
+                _windowPos = ClickThruBlocker.GUIWindow(GetInstanceID(), _windowPos, DrawWindowContents, "Workbench (Max Volume: " + _maxVolume + " litres - " + _filters[_activeFilterId] + ")");
+            else
+                _windowPos = ClickThruBlocker.GUIWindow(GetInstanceID(), _windowPos, DrawWindowContents, "Workbench (Max Volume:" + _maxVolume + " litres - " + _filters[_activeFilterId] + ")", window);
+
         }
 
         private void DrawWindowContents(int windowId)

@@ -44,6 +44,8 @@ OSE Workshop is licensed under a Creative Commons Attribution-NonCommercial-Shar
 
 TODO
 
+Add a packed/unpacked option,unpacked will suffer damange when high accel
+
 
 Regarding the stand-alone tech:
 

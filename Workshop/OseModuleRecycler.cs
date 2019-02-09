@@ -9,6 +9,8 @@
     using Recipes;
     using System.Text;
 
+    using ClickThroughFix;
+
     public partial class OseModuleRecycler : PartModule
     {
         private const double kBackgroundProcessInterval = 3600;
@@ -222,7 +224,12 @@
         {
             if (!HighLogic.LoadedSceneIsFlight)
                 return;
-         
+
+            if (_showGui)
+                Events["ContextMenuOnOpenRecycler"].guiName = "Close Recycler";
+            else
+                Events["ContextMenuOnOpenRecycler"].guiName = "Open Recycler";
+
             try
             {
                 UpdateProductivity();
@@ -407,14 +414,60 @@
             }
         }
 
+        GUIStyle window;
+        bool windowInitted = false;
+
         private void DrawWindow()
         {
-            GUI.skin = HighLogic.Skin;
+            if (!HighLogic.CurrentGame.Parameters.CustomParams<Workshop_MiscSettings>().useAlternateSkin)
+                GUI.skin = HighLogic.Skin;
+            else
+                GUI.color = Color.grey;
+
+            if (!windowInitted && HighLogic.CurrentGame.Parameters.CustomParams<Workshop_MiscSettings>().useAlternateSkin)
+            {
+                windowInitted = true;
+                window = new GUIStyle(HighLogic.Skin.window);
+    
+                window.active.background = window.normal.background;
+
+                Texture2D tex = window.normal.background; //.CreateReadable();
+
+                //#if DEBUG
+                //                Log.Debug("WindowOpacity set to " + value);
+                //                tex.SaveToDisk("unmodified_window_bkg.png");
+                //#endif
+
+                var pixels = tex.GetPixels32();
+
+                for (int i = 0; i < pixels.Length; ++i)
+                    pixels[i].a = 255;
+
+                tex.SetPixels32(pixels); tex.Apply();
+                //#if DEBUG
+                //                tex.SaveToDisk("usermodified_window_bkg.png");
+                //#endif
+                // one of these apparently fixes the right thing
+                // window.onActive.background =
+                // window.onFocused.background =
+                // window.onNormal.background =
+                //window.onHover.background =
+                window.active.background =
+                window.focused.background =
+                //window.hover.background =
+                window.normal.background = tex;
+            }
+
             GUI.skin.label.alignment = TextAnchor.MiddleCenter;
             GUI.skin.button.alignment = TextAnchor.MiddleCenter;
 
-            _windowPos = GUI.Window(GetInstanceID(), _windowPos, DrawWindowContents, "Recycler Menu");
+            if (!HighLogic.CurrentGame.Parameters.CustomParams<Workshop_MiscSettings>().useAlternateSkin)
+                _windowPos = ClickThruBlocker.GUIWindow(GetInstanceID(), _windowPos, DrawWindowContents, "Recycler Menu");
+            else
+                _windowPos = ClickThruBlocker.GUIWindow(GetInstanceID(), _windowPos, DrawWindowContents, "Recycler Menu", window);
+
         }
+
 
         private void DrawWindowContents(int windowId)
         {
