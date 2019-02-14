@@ -26,7 +26,8 @@ namespace Workshop
                                      "ose6000",
                                      "OSE.Workshop2",
                                      "OSE.WorkshopAiCore",
-                                     "OSE.WorkshopChemical"
+                                     "OSE.WorkshopChemical",
+                                     "Duct.Tape"
                                  });
         }
 

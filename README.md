@@ -44,7 +44,13 @@ OSE Workshop is licensed under a Creative Commons Attribution-NonCommercial-Shar
 
 TODO
 
-Add a packed/unpacked option,unpacked will suffer damange when high accel
+
+Each part will have a damage resource or value, starts = 0
+damage increases with accel >2g, (geeForce - 2)/10 * seconds
+Duct tape needed to reduce damage 
+impact will be   adjustedProductivity / SquareRoot(1 + damage resource) 
+Repair time:  100*damage, or 0.01/second
+Duct Tape needed: 10*damage, or 0.1/second
 
 
 Regarding the stand-alone tech:

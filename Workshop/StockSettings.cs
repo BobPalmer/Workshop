@@ -24,6 +24,14 @@ namespace Workshop
             toolTip = "No processing is allowed on any runway or launch facility")]
         public bool noLocalProcessing = false;
 
+        [GameParameters.CustomParameterUI("Require unpacking before use",
+            toolTip = "Recycler & Workshop need to be unpacked before use, and packed before acceleration")]
+        public bool requireUnpacking = false;
+
+        [GameParameters.CustomParameterUI("Unpacked Accel causes damage",
+            toolTip = "If unpacked, high acceleration causes damage")]
+        public bool unpackedAccelCausesDamage = false;
+
         [GameParameters.CustomParameterUI("Use complexity values",
             toolTip = "Only available if recipes are used")]
         public bool useComplexity = true;
@@ -38,16 +46,19 @@ namespace Workshop
 
         [GameParameters.CustomFloatParameterUI("Overall time multiplier", minValue = 1, maxValue = 30f,
             toolTip ="This will apply to both processing time and recycling time equally")]
-        public double overallTimeMultiplier = 1;
-
+        public double overallTimeMultiplier = 1f;
 
         [GameParameters.CustomFloatParameterUI("Processing time multiplier", minValue = 1, maxValue = 30f,
             toolTip = "This will be applied to processing time only")]
-        public double processingTimeMultiplier = 1;
+        public double processingTimeMultiplier = 1f;
 
         [GameParameters.CustomFloatParameterUI("Recycling time multiplier", minValue = 1, maxValue = 5f,
             toolTip = "This will be applied to the recycling time only")]
-        public double recyclingTimeMultiplier = 1;
+        public double recyclingTimeMultiplier = 1f;
+
+        [GameParameters.CustomFloatParameterUI("G-Force Damage multiplier ", minValue = 1, maxValue = 10f,
+            toolTip = "The base G-force damange is multiplied by this")]
+        public double geeForceDamageMultipler = 1f;
 
 
 
@@ -58,30 +69,38 @@ namespace Workshop
             {
                 case GameParameters.Preset.Easy:
                     noLocalProcessing = false;
+                    requireUnpacking = false;
                     overallTimeMultiplier = 1;
                     processingTimeMultiplier = 1f;
                     recyclingTimeMultiplier = 1f;
+                    geeForceDamageMultipler = 1f;
                     break;
 
                 case GameParameters.Preset.Normal:
                     noLocalProcessing = true;
+                    requireUnpacking = true;
                     overallTimeMultiplier = 1;
                     processingTimeMultiplier = 10f;
                     recyclingTimeMultiplier = 2f;
+                    geeForceDamageMultipler = 2f;
                     break;
 
                 case GameParameters.Preset.Moderate:
                     noLocalProcessing = true;
+                    requireUnpacking = true;
                     overallTimeMultiplier = 2;
                     processingTimeMultiplier = 20f;
                     recyclingTimeMultiplier = 3f;
+                    geeForceDamageMultipler = 4f;
                     break;
 
                 case GameParameters.Preset.Hard:
                     noLocalProcessing = true;
+                    requireUnpacking = true;
                     overallTimeMultiplier = 3;
                     processingTimeMultiplier = 30f;
                     recyclingTimeMultiplier = 5f;
+                    geeForceDamageMultipler = 8f;
                     break;
             }
         }
@@ -116,12 +135,17 @@ namespace Workshop
         public override string Section { get { return "Workshop"; } }
         public override string DisplaySection { get { return "Misc"; } }
         public override int SectionOrder { get { return 3; } }
-        public override bool HasPresets { get { return true; } }
+        public override bool HasPresets { get { return false; } }
 
         [GameParameters.CustomParameterUI("Use alternate skin")]
         public bool useAlternateSkin = false;
 
-       
+        [GameParameters.CustomParameterUI("Add Misc category",
+            toolTip = "Some mods have set the category to 'none', and those parts don't show up in any category (MKS, among others).\n" +
+                      "This enables a catchall category.  However, some other mods have deprecated parts, and some\n" +
+                      "use the category to prevent part from showing if they aren't 'real' parts (MechJeb, among others)")]
+        public bool showMiscCategory = false;
+
 
         public override void SetDifficultyPreset(GameParameters.Preset preset)
         {

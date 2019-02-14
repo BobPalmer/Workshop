@@ -16,8 +16,12 @@
 		{
 			
 		}
+         ~WorkshopItem()
+        {
+            DisableIcon();
+        }
 
-		public WorkshopItem(AvailablePart part)
+        public WorkshopItem(AvailablePart part)
 		{
 			Part = part;
             PartBlueprint = WorkshopRecipeDatabase.ProcessPart(part);

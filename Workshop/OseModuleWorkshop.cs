@@ -99,11 +99,18 @@
 
         protected float adjustedProductivity = 1.0f;
 
+        [KSPField(isPersistant = true)]
+        double maxGeeForce = 1;
+
+
+
         private readonly Texture2D _pauseTexture;
         private readonly Texture2D _playTexture;
         private readonly Texture2D _binTexture;
 
         protected Recipe workshopRecipe;
+
+ 
 
         [KSPEvent(guiName = "Open OSE Workbench", guiActive = true, guiActiveEditor = false)]
         public void ContextMenuOpenWorkbench()
@@ -163,6 +170,9 @@
             return sb.ToString();
         }
 
+        WorkshopAnimateGeneric wag;
+        WorkshopDamageController wdc;
+
         public override void OnStart(StartState state)
         {
             //Init the KAC Wrapper. KAC Wrapper courtey of TriggerAu
@@ -182,6 +192,22 @@
                     lastUpdateTime = Planetarium.GetUniversalTime();
                 GameEvents.onVesselChange.Add(OnVesselChange);
             }
+    
+            foreach (PartModule p in this.part.Modules)
+            {
+                if (p.moduleName == "WorkshopAnimateGeneric")
+                {
+                    wag = p as WorkshopAnimateGeneric;
+                }
+                if (p.moduleName == "WorkshopDamageController")
+                {
+                    wdc = p as WorkshopDamageController;
+                }
+            }
+            if (wag != null && wag.packed)
+                Status = "Packed";
+
+            //this.part.GetComponent<WorkshopAnimateGeneric>()
 
             base.OnStart(state);
         }
@@ -316,23 +342,27 @@
 
         void deleteKACAlarm()
         {
-            if (KACWrapper.AssemblyExists && KACWrapper.APIReady && !string.IsNullOrEmpty(KACAlarmID))
+            if (!string.IsNullOrEmpty(KACAlarmID))
             {
-                int totalAlarms = KACWrapper.KAC.Alarms.Count;
-                for (int index = 0; index < totalAlarms; index++)
+                if (KACWrapper.AssemblyExists && KACWrapper.APIReady)
                 {
-                    if (KACWrapper.KAC.Alarms[index].ID == KACAlarmID)
+                    int totalAlarms = KACWrapper.KAC.Alarms.Count;
+                    for (int index = 0; index < totalAlarms; index++)
                     {
-                        KACWrapper.KAC.DeleteAlarm(KACAlarmID);
-                        KACAlarmID = string.Empty;
-                        kacAlarm = null;
-                        return;
+                        if (KACWrapper.KAC.Alarms[index].ID == KACAlarmID)
+                        {
+                            KACWrapper.KAC.DeleteAlarm(KACAlarmID);
+                            KACAlarmID = string.Empty;
+                            kacAlarm = null;
+                            return;
+                        }
                     }
                 }
+                KACAlarmID = string.Empty;
+                kacAlarm = null;
+
+                Log.Info("Alarm not deleted");
             }
-            KACAlarmID = string.Empty;
-            kacAlarm = null;
-            Log.Info("Alarm not deleted");
         }
 
         public override void OnLoad(ConfigNode node)
@@ -468,6 +498,13 @@
                 //Science
                 filters.Add(new FilterCategory(PartCategories.Science));
                 filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_advsciencetech"));
+
+                if (HighLogic.CurrentGame.Parameters.CustomParams<Workshop_MiscSettings>().showMiscCategory)
+                {
+                    //Misc (catchall for parts not in other categories)
+                    filters.Add(new FilterCategory(PartCategories.none));
+                    filterTextures.Add(WorkshopUtils.LoadTexture("Workshop/Assets/Icons/Misc"));
+                }
             }
 
             else //Load all the specified CATEGORY nodes.
@@ -610,10 +647,32 @@
             if (!HighLogic.LoadedSceneIsFlight)
                 return;
 
+            maxGeeForce = Math.Max(maxGeeForce, FlightGlobals.ActiveVessel.geeForce);
+
             if (_showGui)
                 Events["ContextMenuOpenWorkbench"].guiName = "Close OSE Workbench";
             else
                 Events["ContextMenuOpenWorkbench"].guiName = "Open OSE Workbench";
+ 
+
+            if (HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().requireUnpacking || WorkshopUtils.PreLaunch())
+            {
+                if (wag != null)
+                {
+                    if (!wag.packed && !wag.Packing)
+                        Events["ContextMenuOpenWorkbench"].guiActive = (_processedItem == null);
+                    else
+                        Events["ContextMenuOpenWorkbench"].guiActive = false;
+                }
+            }
+            
+            if (wag != null)
+                wag.Busy = (_processedItem != null);
+
+            if (wag != null && wag.packed)
+                Status = "Packed";
+            else
+                Status = "Online";
 
             try
             {
@@ -661,6 +720,8 @@
             {
                 adjustedProductivity = WorkshopUtils.GetProductivityBonus(this.part, ExperienceEffect, SpecialistEfficiencyFactor, ProductivityFactor, WorkshopUtils.ProductivityType.printer);
             }
+            if (_processedItem != null && wdc != null && HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().unpackedAccelCausesDamage)
+                adjustedProductivity /= (float)wdc.CurDamageImpact;
         }
 
         private double ProcessItem(double deltaTime)

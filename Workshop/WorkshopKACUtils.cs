@@ -132,24 +132,26 @@ namespace Workshop
 
         void deleteKACAlarm()
         {
-            if (KACWrapper.AssemblyExists && KACWrapper.APIReady && !string.IsNullOrEmpty(KACAlarmID))
+            if (!string.IsNullOrEmpty(KACAlarmID))
             {
-                int totalAlarms = KACWrapper.KAC.Alarms.Count;
-                for (int index = 0; index < totalAlarms; index++)
+                if (KACWrapper.AssemblyExists && KACWrapper.APIReady)
                 {
-                    if (KACWrapper.KAC.Alarms[index].ID == KACAlarmID)
+                    int totalAlarms = KACWrapper.KAC.Alarms.Count;
+                    for (int index = 0; index < totalAlarms; index++)
                     {
-                        KACWrapper.KAC.DeleteAlarm(KACAlarmID);
-                        KACAlarmID = string.Empty;
-                        kacAlarm = null;
-                        return;
+                        if (KACWrapper.KAC.Alarms[index].ID == KACAlarmID)
+                        {
+                            KACWrapper.KAC.DeleteAlarm(KACAlarmID);
+                            KACAlarmID = string.Empty;
+                            kacAlarm = null;
+                            return;
+                        }
                     }
                 }
+                KACAlarmID = string.Empty;
+                kacAlarm = null;
+                Log.Info("Alarm not deleted");
             }
-            KACAlarmID = string.Empty;
-            kacAlarm = null;
-            Log.Info("Alarm not deleted");
         }
-
     }
 }

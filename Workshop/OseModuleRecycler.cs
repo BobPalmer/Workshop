@@ -76,6 +76,10 @@
 
         protected float adjustedProductivity = 1.0f;
 
+        [KSPField(isPersistant = true)]
+        double maxGeeForce = 1;
+
+
         [KSPEvent(guiActive = true, guiName = "Open Recycler")]
         public void ContextMenuOnOpenRecycler()
         {
@@ -137,6 +141,8 @@
 
             return sb.ToString();
         }
+        WorkshopAnimateGeneric wag;
+        WorkshopDamageController wdc;
 
         public override void OnStart(StartState state)
         {
@@ -156,6 +162,24 @@
                 Fields["RecyclerStatus"].guiActive = false;
                 Events["ContextMenuOnOpenRecycler"].guiActive = false;
             }
+
+
+            foreach (PartModule p in this.part.Modules)
+            {
+                if (p.moduleName == "WorkshopAnimateGeneric")
+                {
+                    wag = p as WorkshopAnimateGeneric;
+                }
+                if (p.moduleName == "WorkshopDamageController")
+                {
+                    wdc = p as WorkshopDamageController;
+                }
+            }
+
+
+            if (wag != null && wag.packed)
+                RecyclerStatus = "Packed";
+
             base.OnStart(state);
         }
 
@@ -218,6 +242,8 @@
         {
             if (_processedItem != null && UseSpecializationBonus)
                 adjustedProductivity = WorkshopUtils.GetProductivityBonus(part, ExperienceEffect, SpecialistEfficiencyFactor, ProductivityFactor, WorkshopUtils.ProductivityType.recycler);
+            if (_processedItem != null && wdc != null && HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().unpackedAccelCausesDamage)
+                adjustedProductivity /= (float)wdc.CurDamageImpact;
         }
 
         public void FixedUpdate()
@@ -225,10 +251,31 @@
             if (!HighLogic.LoadedSceneIsFlight)
                 return;
 
+            maxGeeForce = Math.Max(maxGeeForce, FlightGlobals.ActiveVessel.geeForce);
+
             if (_showGui)
                 Events["ContextMenuOnOpenRecycler"].guiName = "Close Recycler";
             else
                 Events["ContextMenuOnOpenRecycler"].guiName = "Open Recycler";
+
+
+            if (HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().requireUnpacking || WorkshopUtils.PreLaunch())
+            {
+                if (wag != null)
+                {
+                    if (!wag.packed && !wag.Packing)
+                        Events["ContextMenuOnOpenRecycler"].guiActive = (_processedItem == null);
+                    else
+                        Events["ContextMenuOnOpenRecycler"].guiActive = false;
+                }
+            }
+            if (wag != null)
+                wag.Busy = (_processedItem != null);
+
+            if (wag != null && wag.packed)
+                RecyclerStatus = "Packed";
+            else
+                RecyclerStatus = "Online";
 
             try
             {
@@ -329,7 +376,7 @@
             var resourceToProduce = _processedBlueprint.First(r => r.Processed < r.Units);
             var unitsToProduce = Math.Min(resourceToProduce.Units - resourceToProduce.Processed,
                                            deltaTime * adjustedProductivity); 
-;
+
             if (part.protoModuleCrew.Count < MinimumCrew)
             {
                 RecyclerStatus = "Not enough Crew to operate";
@@ -378,11 +425,15 @@
 
         private void CleanupRecycler()
         {
+            // Need to turn processed  stuff over to the tanks
+            foreach (var p in _processedBlueprint)
+                this.part.RequestResource( p.Name, -p.Processed);
+
             _processedItem.DisableIcon();
             _processedItem = null;
             _processedBlueprint = null;
             progress = 0;
-            RecyclerStatus = "Online";
+
 
             deleteKACAlarm();
         }
@@ -505,15 +556,19 @@
                     if (availableItems.Length > itemIndex)
                     {
                         var item = availableItems[itemIndex];
-                        if (item.Value.Icon == null)
+                        var icon = item.Value.Icon;
+                        if (icon == null)
                         {
                             item.Value.EnableIcon(64);
+                            icon = item.Value.Icon;
                         }
-                        if (GUI.Button(new Rect(left, top, 50, 50), item.Value.Icon.texture))
+                        
+                        if (GUI.Button(new Rect(left, top, 50, 50), icon.texture))
                         {
                             _queue.Add(new WorkshopItem(item.Value.availablePart));
                             item.Value.StackRemove(1);
                         }
+                
                         if (item.Value.stackable)
                         {
                             GUI.Label(new Rect(left, top, 50, 50), item.Value.quantity.ToString("x#"), UI.UIStyles.lowerRightStyle);

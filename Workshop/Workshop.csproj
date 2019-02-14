@@ -90,8 +90,10 @@
     <Compile Include="Recipes\WorkshopResource.cs" />
     <Compile Include="StockSettings.cs" />
     <Compile Include="UI\UIStyles.cs" />
+    <Compile Include="WorkshopAnimateGeneric.cs" />
     <Compile Include="WorkshopBlacklistItemsDatabase.cs" />
     <Compile Include="WorkshopBlacklistItemsLoader.cs" />
+    <Compile Include="WorkshopDamageController.cs" />
     <Compile Include="WorkshopKACUtils.cs" />
     <Compile Include="WorkshopOptions.cs" />
     <Compile Include="WorkshopSettings.cs" />

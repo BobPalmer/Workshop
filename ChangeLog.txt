@@ -70,3 +70,13 @@
 	Added alternate skin
 	Remvoed mod version from Workshop window title
 	Fixed exceptions when alarm is deleted from KAC by hand
+
+1.2.7.7
+	Added packing/unpacking option, configurable in settings	
+	Added destructor to WorkshopItem to dispose of icon properly
+	Fixed bug where recycled resources were not being returned to the vessel.  Now, recycled resources are returned at the end of the recycling process
+	Added damage caused by acceleration (optional)
+	Added new resource DuctTape
+	Added new part Duct.Tape
+	Added repair code
+	Added option to show all parts with a category of "none" in a Misc category (useful for MKS, among others)
