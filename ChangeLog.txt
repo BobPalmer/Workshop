@@ -80,3 +80,6 @@
 	Added new part Duct.Tape
 	Added repair code
 	Added option to show all parts with a category of "none" in a Misc category (useful for MKS, among others)
+
+1.2.7.8
+	Fixed missing brace in GameData\Workshop\MM_Patches\_OSE_PartRecipes.cfg (Thanks @AccidentalDisassembly for the report)
