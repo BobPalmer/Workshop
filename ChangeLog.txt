@@ -88,3 +88,6 @@
 	Added missing initialization of the Blueprint when loading WorkshopItem from config node
 	Fixed processing of recipies while in a different scene
 	Fixed KAC alarm time for recycler
+
+1.2.7.10
+	Fixed issue where damage was being applied to packed workshop pods

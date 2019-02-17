@@ -27,6 +27,8 @@ namespace Workshop
         const string DUCTTAPERESOURCE = "DuctTape";
         const float DAMAGECHECKDELAY = 0.5f;
 
+        WorkshopAnimateGeneric wag;
+
         [KSPField(isPersistant=true)]
         private double curDamage = 0;
 
@@ -104,7 +106,7 @@ namespace Workshop
 
         void CheckForDamage(double secs)
         {
-            if (HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().unpackedAccelCausesDamage)
+            if (HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().unpackedAccelCausesDamage && (wag != null && wag.packed))
             {
                 if (Math.Abs(vessel.geeForce) > 2)
                 {
@@ -113,9 +115,16 @@ namespace Workshop
             }
         }
 
-
         void Start()
         {
+            foreach (PartModule p in this.part.Modules)
+            {
+                if (p.moduleName == "WorkshopAnimateGeneric")
+                {
+                    wag = p as WorkshopAnimateGeneric;
+                    break;
+                }
+            }
             SetRepairStatus();
             StartCoroutine(DoDamageCheck());
         }
