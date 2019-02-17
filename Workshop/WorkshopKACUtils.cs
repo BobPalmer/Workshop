@@ -12,7 +12,7 @@ namespace Workshop
 
         }
 
-        void setKACAlarm(double totalPrintTime)
+        void setKACRecycleAlarm(double totalPrintTime)
         {
             if (!KACWrapper.AssemblyExists)
                 return;
@@ -74,6 +74,7 @@ namespace Workshop
                 return;
             }
 
+            
             //Calculate total print time.
             double totalRecycleTime = 0;
             int totalItems = _queue.Count;
@@ -81,13 +82,15 @@ namespace Workshop
             {
                 totalRecycleTime += _queue[index].PartBlueprint.GetBuildTime(WorkshopUtils.ProductivityType.recycler, adjustedProductivity);
             }
+
             if (_processedBlueprint != null)
                 totalRecycleTime += _processedBlueprint.GetBuildTime(WorkshopUtils.ProductivityType.recycler, adjustedProductivity);
 
+            Log.Info("updateKACAlarm, adjustedProductivity: " + adjustedProductivity + ", totalRecycleTime: " + totalRecycleTime);
             //Create the alarm if needed.
             if (string.IsNullOrEmpty(KACAlarmID))
             {
-                setKACAlarm(totalRecycleTime);
+                setKACRecycleAlarm(totalRecycleTime);
             }
             else
             {
@@ -110,6 +113,8 @@ namespace Workshop
                 //Update the alarm
                 else
                 {
+
+
                     kacAlarm.AlarmTime = Planetarium.GetUniversalTime() + totalRecycleTime;
                     if (kacAlarmIndex < 0 || kacAlarmIndex >= KACWrapper.KAC.Alarms.Count || KACWrapper.KAC.Alarms[kacAlarmIndex].ID != kacAlarm.ID)
                     {

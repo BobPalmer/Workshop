@@ -47,20 +47,22 @@ namespace Workshop.Recipes
             else
                 duration = this.Sum(r => r.Units) / (productivity);
 
-            if (type == WorkshopUtils.ProductivityType.printer)
+            if (HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().useComplexity && type == WorkshopUtils.ProductivityType.printer)
                 sb.Append("Complexity duration: " + KSPUtil.PrintTime(duration, 5, false));
 
             return sb.ToString();
         }
 
-        public double GetBuildTime(WorkshopUtils.ProductivityType type, double productivity)
+        public double GetBuildTime(WorkshopUtils.ProductivityType type, double productivity, double ConversionRate = 1)
         {
             var totalAmount = this.Sum(r => r.Units);
             var totalProcessed = this.Sum(r => r.Processed);
+            Log.Info("GetBuildtime, totalAmount: " + totalAmount + ", totalProcessed: " + totalProcessed + ", type: " + type);
+
             if (type == WorkshopUtils.ProductivityType.printer)
                 return (totalAmount - totalProcessed) / (productivity / Complexity) ;
             else
-                return (totalAmount - totalProcessed) / (productivity);
+                return (totalAmount * ConversionRate - totalProcessed) / (productivity);
         }
 
         public void Load(ConfigNode node)

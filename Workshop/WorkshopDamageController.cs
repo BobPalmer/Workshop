@@ -28,7 +28,7 @@ namespace Workshop
         const float DAMAGECHECKDELAY = 0.5f;
 
         [KSPField(isPersistant=true)]
-        private double curDamage = 3;
+        private double curDamage = 0;
 
 
         [KSPField]
@@ -151,7 +151,6 @@ namespace Workshop
                     RequestResource(UpkeepResource, elapsedTime * UpkeepAmount);
 
                     double neededDuctTape = Math.Max(Math.Min(0.1f * elapsedTime, availDuctTape) * part.protoModuleCrew.Count, 0);
-                    Log.Info("DoRepair 1, curDamage: " + curDamage + ", availDuctTape: " + availDuctTape + ", neededDuctTape: " + neededDuctTape);
 
                     curDamage = Math.Max(0, curDamage - neededDuctTape / 10);
                     this.part.RequestResource(DUCTTAPERESOURCE, neededDuctTape);
@@ -168,12 +167,12 @@ namespace Workshop
                         availDuctTape -= amt;
                         if (res <= 0)
                         {
-                            Log.Info("Deleting empty DuctTape from inventory");
+
 
                             ductTapeInInventory.Remove(d);
                             d.Value.StackRemove(1);
                         }
-                        Log.Info("ductTapeInInventory.Count: " + ductTapeInInventory.Count + ", neededDuctTape: " + neededDuctTape);
+
                     }
                     Events["Repair"].guiName = "Stop Repair (dmg: " + curDamage.ToString("F2") + ")";
                 }

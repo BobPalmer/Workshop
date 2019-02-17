@@ -264,7 +264,7 @@
                 if (wag != null)
                 {
                     if (!wag.packed && !wag.Packing)
-                        Events["ContextMenuOnOpenRecycler"].guiActive = (_processedItem == null);
+                        Events["ContextMenuOnOpenRecycler"].guiActive = true; // (_processedItem == null);
                     else
                         Events["ContextMenuOnOpenRecycler"].guiActive = false;
                 }
@@ -276,6 +276,8 @@
                 RecyclerStatus = "Packed";
             else
                 RecyclerStatus = "Online";
+
+   
 
             try
             {
@@ -300,11 +302,15 @@
 
                 //If our elapsed time is > the background process interval, then we'll need to do some multiple processings.
                 double timeRemaining = 0;
-                while (elapsedTime > kBackgroundProcessInterval)
+                while (elapsedTime > 0.1) // kBackgroundProcessInterval)
                 {
-                    timeRemaining = ProcessItem(kBackgroundProcessInterval);
-                    elapsedTime += timeRemaining;
-                    elapsedTime -= kBackgroundProcessInterval;
+                    timeRemaining = ProcessItem(elapsedTime);
+                    if (_processedItem == null)
+                        return;
+                    if (elapsedTime == timeRemaining)
+                        break;
+                    elapsedTime = timeRemaining;
+                    //elapsedTime -= kBackgroundProcessInterval;
                 }
 
                 //Process the remaining delta time
@@ -320,23 +326,26 @@
 
         private double ProcessItem(double deltaTime)
         {
-            double timeRemaining = 0;
+            double timeRemaining = deltaTime;
 
             if (recyclingPaused)
             {
                 RecyclerStatus = "Paused";
+                return 0;
             }
-            else if (progress >= 100)
+            if (progress >= 100)
             {
                 FinishManufacturing();
+                timeRemaining -= 0.01f;
             }
-            else if (_processedItem != null)
+            if (_processedItem != null)
             {
-                timeRemaining = ExecuteManufacturing(deltaTime);
+                timeRemaining = ExecuteRecycling(deltaTime);
             }
             else
             {
                 StartManufacturing();
+                timeRemaining -= 0.01f;
             }
 
             return timeRemaining;
@@ -371,12 +380,12 @@
             }
         }
 
-        private double ExecuteManufacturing(double deltaTime)
+        private double ExecuteRecycling(double deltaTime)
         {
             var resourceToProduce = _processedBlueprint.First(r => r.Processed < r.Units);
             var unitsToProduce = Math.Min(resourceToProduce.Units - resourceToProduce.Processed,
-                                           deltaTime * adjustedProductivity); 
-
+                                           deltaTime * adjustedProductivity);
+            Log.Info("resourceToProduce: " + resourceToProduce.Name + ", unitsToProduce: " + unitsToProduce);
             if (part.protoModuleCrew.Count < MinimumCrew)
             {
                 RecyclerStatus = "Not enough Crew to operate";
@@ -392,10 +401,16 @@
 
                 resourceToProduce.Processed += unitsToProduce;
                 progress = (float)(_processedBlueprint.GetProgress() * 100);
+                Log.Info("progress: " + progress);
             }
 
             //Return time remaining
-            return deltaTime - unitsToProduce;
+            //return deltaTime - unitsToProduce;
+
+
+            double d = deltaTime - deltaTime * (unitsToProduce / (deltaTime * adjustedProductivity));
+            Log.Info("ExecuteRecycling, returning : " + d);
+            return d;
         }
 
         private void FinishManufacturing()
@@ -694,7 +709,8 @@
             }
             string progressText = "";
             if (_processedBlueprint != null)
-                progressText = string.Format("Progress: {0:n1}%, T- ", progress) + KSPUtil.PrintTime(_processedBlueprint.GetBuildTime(WorkshopUtils.ProductivityType.recycler, adjustedProductivity), 5, false);
+                progressText = string.Format("Progress: {0:n1}%, T- ", progress) + KSPUtil.PrintTime(_processedBlueprint.GetBuildTime(WorkshopUtils.ProductivityType.recycler, adjustedProductivity, ConversionRate), 5, false);
+            Log.Info("DrawRecyclingProgress, adjustedProductivity: " + adjustedProductivity);
             GUI.Label(new Rect(250, 620, 260, 50), " " + progressText);
 
             // Toolbar

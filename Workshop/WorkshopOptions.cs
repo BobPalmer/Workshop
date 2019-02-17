@@ -23,8 +23,7 @@
         {
             get
             {
-                WorkshopOptions options = HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>();
-                return options.enableEfficiency;
+                return HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>().enableEfficiency;
             }
         }
 
@@ -32,8 +31,7 @@
         {
             get
             {
-                WorkshopOptions options = HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>();
-                return options.stupidityAffectsEfficiency;
+                return HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>().stupidityAffectsEfficiency;
             }
         }
 
@@ -41,8 +39,7 @@
         {
             get
             {
-                WorkshopOptions options = HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>();
-                return options.partsCostFunds;
+                return HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>().partsCostFunds;
             }
         }
 
@@ -50,8 +47,7 @@
         {
             get
             {
-                WorkshopOptions options = HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>();
-                return options.enableRecipes;
+                return HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>().enableRecipes;
             }
         }
 
@@ -59,8 +55,7 @@
         {
             get
             {
-                WorkshopOptions options = HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>();
-                return options.enableKACIntegration;
+                return HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>().enableKACIntegration;
             }
         }
 

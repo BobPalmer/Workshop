@@ -83,3 +83,8 @@
 
 1.2.7.8
 	Fixed missing brace in GameData\Workshop\MM_Patches\_OSE_PartRecipes.cfg (Thanks @AccidentalDisassembly for the report)
+
+1.2.7.9
+	Added missing initialization of the Blueprint when loading WorkshopItem from config node
+	Fixed processing of recipies while in a different scene
+	Fixed KAC alarm time for recycler

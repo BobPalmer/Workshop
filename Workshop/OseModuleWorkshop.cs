@@ -281,6 +281,7 @@
 
             //Calculate total print time.
             double totalPrintTime = 0;
+
             int totalItems = _queue.Count;
             for (int index = 0; index < totalItems; index++)
             {
@@ -316,10 +317,10 @@
                 //Update the alarm
                 else
                 {
+
                     kacAlarm.AlarmTime = Planetarium.GetUniversalTime() + totalPrintTime;
                     if (kacAlarmIndex < 0 || kacAlarmIndex >= KACWrapper.KAC.Alarms.Count || KACWrapper.KAC.Alarms[kacAlarmIndex].ID != kacAlarm.ID)
                     {
-                        Log.Info("updateKACAlarm 7");
 
                         kacAlarmIndex = -1;
                         for (int index = KACWrapper.KAC.Alarms.Count - 1; index >= 0; index--)
@@ -332,7 +333,6 @@
                             }
                         }
                     }
-                    Log.Info("updateKACAlarm 8");
 
                     if (kacAlarmIndex >= 0)    
                         KACWrapper.KAC.Alarms[kacAlarmIndex] = kacAlarm;
@@ -622,10 +622,10 @@
 
         public override void OnSave(ConfigNode node)
         {
-            node.AddValue("progress", progress);
-            node.AddValue("lastUpdateTime", lastUpdateTime);
+            node.SetValue("progress", progress, true);
+            node.SetValue("lastUpdateTime", lastUpdateTime, true);
             if (!string.IsNullOrEmpty("KACAlarmID"))
-                node.AddValue("KACAlarmID", KACAlarmID);
+                node.SetValue("KACAlarmID", KACAlarmID, true);
 
             if (_processedItem != null)
             {
@@ -660,7 +660,7 @@
                 if (wag != null)
                 {
                     if (!wag.packed && !wag.Packing)
-                        Events["ContextMenuOpenWorkbench"].guiActive = (_processedItem == null);
+                        Events["ContextMenuOpenWorkbench"].guiActive = true; // (_processedItem == null);
                     else
                         Events["ContextMenuOpenWorkbench"].guiActive = false;
                 }
@@ -673,7 +673,7 @@
                 Status = "Packed";
             else
                 Status = "Online";
-
+            
             try
             {
                 UpdateProductivity();
@@ -695,13 +695,20 @@
                 //Update last update time
                 lastUpdateTime = Planetarium.GetUniversalTime();
 
+
                 //If our elapsed time is > the background process interval, then we'll need to do some multiple processings.
                 double timeRemaining = 0;
-                while (elapsedTime > kBackgroundProcessInterval)
+                while (elapsedTime > 0.1f) //kBackgroundProcessInterval)
                 {
-                    timeRemaining = ProcessItem(kBackgroundProcessInterval);
-                    elapsedTime += timeRemaining;
-                    elapsedTime -= kBackgroundProcessInterval;
+                    timeRemaining = ProcessItem(elapsedTime);
+                    Log.Info("elapsedTime: " + elapsedTime + ", timeRemaining: " + timeRemaining + ", elapsedTime: " + elapsedTime);
+                    if (_processedItem == null)
+                        return;
+                    if (elapsedTime == timeRemaining)
+                        break;
+                    elapsedTime = timeRemaining;
+                    //elapsedTime -= kBackgroundProcessInterval;
+                    Log.Info("elapsedTime: " + elapsedTime);
                 }
 
                 //Process the remaining delta time
@@ -726,7 +733,8 @@
 
         private double ProcessItem(double deltaTime)
         {
-            double timeRemaining = 0;
+            Log.Info("Workshop.ProcessItem, deltaTime: " + deltaTime);
+            double timeRemaining = deltaTime;
 
             if (manufacturingPaused)
             {
@@ -737,14 +745,16 @@
             if (progress >= 100)
             {
                 FinishManufacturing();
+                timeRemaining -= 0.01f;
             }
-            else if (_processedItem != null)
+            if (_processedItem != null)
             {
                 timeRemaining = ExecuteManufacturing(deltaTime);
             }
             else
             {
                 StartManufacturing();
+                timeRemaining -= 0.01f;
             }
 
             return timeRemaining;
@@ -831,12 +841,13 @@
 
         private double ExecuteManufacturing(double deltaTime)
         {
+            Log.Info("ExecuteManufacturing, deltaTime: " + deltaTime);
             //Find the first resource that still needs to be processed.
             var resourceToConsume = _processedBlueprint.First(r => r.Processed < r.Units);
 
             //Determine the number of units of the resource to consume.
             var unitsToConsume = Math.Min(resourceToConsume.Units - resourceToConsume.Processed, deltaTime * adjustedProductivity / _processedBlueprint.Complexity);
-
+            Log.Info("resourceToConsume: " + resourceToConsume.Name + ", unitsToConsume: " + unitsToConsume);
             if (part.protoModuleCrew.Count < MinimumCrew)
             {
                 Status = "Not enough Crew to operate";
@@ -871,10 +882,16 @@
                 RequestResource(UpkeepResource, TimeWarp.deltaTime * UpkeepAmount);
                 resourceToConsume.Processed += RequestResource(resourceToConsume.Name, unitsToConsume);
                 progress = (float)(_processedBlueprint.GetProgress() * 100);
+                Log.Info("progress: " + progress);
             }
 
             //Return time remaining
-            return deltaTime - unitsToConsume;
+            //return deltaTime - unitsToConsume;
+
+
+            double d = deltaTime - deltaTime * (unitsToConsume / (deltaTime * adjustedProductivity / _processedBlueprint.Complexity));
+            Log.Info("ExecuteManufacturing, returning : " + d);
+            return d;
         }
 
         private double AmountAvailable(string resource)

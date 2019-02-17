@@ -51,7 +51,9 @@
 			{
 				var partName = node.GetValue("Name");
 				Part = PartLoader.getPartInfoByName(partName);
-			}
+
+                PartBlueprint = WorkshopRecipeDatabase.ProcessPart(Part);
+            }
 		}
 
 		public void Save(ConfigNode node)
