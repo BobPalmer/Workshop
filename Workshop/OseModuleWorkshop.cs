@@ -239,6 +239,7 @@
             {
                 kacAlarm.AlarmMargin = 5.0f;
                 kacAlarm.Notes = this.part.vessel.vesselName + " completed print job.";
+                kacAlarm.VesselID = FlightGlobals.ActiveVessel.id.ToString();
                 KACWrapper.KAC.Alarms[kacAlarmIndex] = kacAlarm;
             }
             else
@@ -701,14 +702,13 @@
                 while (elapsedTime > 0.1f) //kBackgroundProcessInterval)
                 {
                     timeRemaining = ProcessItem(elapsedTime);
-                    Log.Info("elapsedTime: " + elapsedTime + ", timeRemaining: " + timeRemaining + ", elapsedTime: " + elapsedTime);
+                    
                     if (_processedItem == null)
                         return;
                     if (elapsedTime == timeRemaining)
                         break;
                     elapsedTime = timeRemaining;
-                    //elapsedTime -= kBackgroundProcessInterval;
-                    Log.Info("elapsedTime: " + elapsedTime);
+                    //elapsedTime -= kBackgroundProcessInterval;                    
                 }
 
                 //Process the remaining delta time

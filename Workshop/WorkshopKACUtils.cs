@@ -34,6 +34,7 @@ namespace Workshop
             {
                 kacAlarm.AlarmMargin = 5.0f;
                 kacAlarm.Notes = part.vessel.vesselName + " completed recycling job.";
+                kacAlarm.VesselID = FlightGlobals.ActiveVessel.id.ToString();
                 KACWrapper.KAC.Alarms[kacAlarmIndex] = kacAlarm;
             }
             else
@@ -77,8 +78,8 @@ namespace Workshop
             
             //Calculate total print time.
             double totalRecycleTime = 0;
-            int totalItems = _queue.Count;
-            for (int index = 0; index < totalItems; index++)
+            //int totalItems = _queue.Count;
+            for (int index = _queue.Count - 1; index >= 0; index--)
             {
                 totalRecycleTime += _queue[index].PartBlueprint.GetBuildTime(WorkshopUtils.ProductivityType.recycler, adjustedProductivity);
             }

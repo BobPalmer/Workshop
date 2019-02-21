@@ -91,3 +91,7 @@
 
 1.2.7.10
 	Fixed issue where damage was being applied to packed workshop pods
+
+1.2.7.11
+	Added line to initialize vesselid when creating a KAC alarm, in both printer and recycler
+	Fixed timer for recycling

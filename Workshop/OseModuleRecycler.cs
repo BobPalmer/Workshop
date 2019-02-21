@@ -291,6 +291,7 @@
                 {
                     lastUpdateTime = Planetarium.GetUniversalTime();
                     ProcessItem(TimeWarp.deltaTime);
+                    Log.Info("After ProcessItem 1");
                     return;
                 }
 
@@ -315,7 +316,10 @@
 
                 //Process the remaining delta time
                 if (elapsedTime > 0f)
+                {
                     ProcessItem(elapsedTime);
+                    Log.Info("After ProcessItem 2");
+                }
 
             }
             catch (Exception ex)
@@ -341,6 +345,7 @@
             if (_processedItem != null)
             {
                 timeRemaining = ExecuteRecycling(deltaTime);
+                Log.Info("After ExecuteRecycling");
             }
             else
             {
@@ -709,7 +714,7 @@
             }
             string progressText = "";
             if (_processedBlueprint != null)
-                progressText = string.Format("Progress: {0:n1}%, T- ", progress) + KSPUtil.PrintTime(_processedBlueprint.GetBuildTime(WorkshopUtils.ProductivityType.recycler, adjustedProductivity, ConversionRate), 5, false);
+                progressText = string.Format("Progress: {0:n1}%, T- ", progress) + KSPUtil.PrintTime(_processedBlueprint.GetBuildTime(WorkshopUtils.ProductivityType.recycler, adjustedProductivity), 5, false);
             Log.Info("DrawRecyclingProgress, adjustedProductivity: " + adjustedProductivity);
             GUI.Label(new Rect(250, 620, 260, 50), " " + progressText);
 
