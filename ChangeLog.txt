@@ -95,3 +95,7 @@
 1.2.7.11
 	Added line to initialize vesselid when creating a KAC alarm, in both printer and recycler
 	Fixed timer for recycling
+
+1.2.8
+	Minor edits to fuel switch display text for tanks
+	Official release
