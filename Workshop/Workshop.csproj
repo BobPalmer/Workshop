@@ -35,31 +35,30 @@
   <ItemGroup>
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>R:\KSP_1.6.1_dev\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>R:\KSP_1.7.1_dev\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>R:\KSP_1.6.1_dev\KSP_x64_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+      <HintPath>R:\KSP_1.7.1_dev\KSP_x64_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
     <Reference Include="ClickThroughBlocker">
-      <HintPath>R:\KSP_1.6.1_dev\GameData\000_ClickThroughBlocker\Plugins\ClickThroughBlocker.dll</HintPath>
+      <HintPath>R:\KSP_1.7.1_dev\GameData\000_ClickThroughBlocker\Plugins\ClickThroughBlocker.dll</HintPath>
     </Reference>
     <Reference Include="KIS">
-      <HintPath>R:\KSP_1.6.1_dev\GameData\KIS\Plugins\KIS.dll</HintPath>
+      <HintPath>R:\KSP_1.7.1_dev\GameData\KIS\Plugins\KIS.dll</HintPath>
     </Reference>
-    <Reference Include="KSPDev_Utils.1.1, Version=1.1.6967.2347, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>R:\KSP_1.6.1_dev\GameData\KIS\Plugins\KSPDev_Utils.1.1.dll</HintPath>
+    <Reference Include="KSPDev_Utils.1.2">
+      <HintPath>R:\KSP_1.7.1_dev\GameData\KSPDev\LogConsole\Plugins\KSPDev_Utils.1.2.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>R:\KSP_1.6.1_dev\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>R:\KSP_1.7.1_dev\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>R:\KSP_1.6.1_dev\KSP_x64_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>R:\KSP_1.7.1_dev\KSP_x64_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
