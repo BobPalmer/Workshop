@@ -96,11 +96,11 @@
 	Added line to initialize vesselid when creating a KAC alarm, in both printer and recycler
 	Fixed timer for recycling
 
-1.2.8
+1.2.9
 	Minor edits to fuel switch display text for tanks
 	Official release
 	
-1.2.9
+1.2.10
 	Thanks to @zer0Kerbal for the following:
 		Update MM_Workshop.cfg to cover all science labs instead of just the stock one.
 		Update WorkshopChemical.cfg for SimpleConstruction
