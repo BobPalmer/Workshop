@@ -1,0 +1,52 @@
+@PART[B9-ose3000,B9-ose6000]
+{
+	@MODULE[ModuleB9DisableTransform]
+	{
+		/// Disable the right lines for the decals we are activating
+		!transform,* = any
+		transform:NEEDS[Workshop] = MaterialKits
+		transform:NEEDS[Workshop] = EMplusRM
+		transform:NEEDS[Workshop] = RareMetals
+		transform:NEEDS[Workshop] = ExoticMinerals
+		transform:NEEDS[Workshop] = Dirt
+	}
+
+	@MODULE[ModuleB9PartSwitch]
+	{
+		SUBTYPE:NEEDS[Workshop]
+		{
+			name = MaterialKits
+			tankType = MaterialKits
+			title = Material Kits // #LOC_SSPX_Switcher_Cargo_LifeSupport
+			transform = MaterialKitsDecal
+		}
+		SUBTYPE:NEEDS[Workshop]
+		{
+			name = EMplusRM
+			tankType = EMplusRM
+			title = EMplusRM // #LOC_SSPX_Switcher_Cargo_Snacks
+			transform = EMplusRMDecal
+		}
+		SUBTYPE:NEEDS[Workshop]
+		{
+			name = RareMetals
+			tankType = RareMetals
+			title = Rare Metals // #LOC_SSPX_Switcher_Cargo_Soil
+			transform = RareMetalsDecal
+		}
+		SUBTYPE:NEEDS[Workshop]
+		{
+			name = ExoticMinerals
+			tankType = ExoticMinerals
+			title = Exotic Minerals // #LOC_SSPX_Switcher_Cargo_Supplies
+			transform = ExoticMineralsDecal
+		}
+		SUBTYPE:NEEDS[Workshop]
+		{
+			name = Dirt
+			tankType = Dirt
+			title = Dirt // #LOC_SSPX_Switcher_Cargo_MetallicOre
+			transform = DirtDecal
+		}
+	}
+}
