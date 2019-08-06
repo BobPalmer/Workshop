@@ -1,4 +1,4 @@
-﻿1.2.7
+1.2.7
 	Fixed null ref when going into the workshop the first time without any parts in the queue
 	Added missing bulkheadProfiles to parts
 	Fixed nullref in the Workshop when hitting the trashcan when nothing was in queue
@@ -96,6 +96,16 @@
 	Added line to initialize vesselid when creating a KAC alarm, in both printer and recycler
 	Fixed timer for recycling
 
-1.2.8
+1.2.9
 	Minor edits to fuel switch display text for tanks
 	Official release
+	
+1.2.10
+	Thanks to @zer0Kerbal for the following:
+		Update MM_Workshop.cfg to cover all science labs instead of just the stock one.
+		Update WorkshopChemical.cfg for SimpleConstruction
+		Update WorkshopAICore.cfg for SimpleConstruction
+		Update Workshop.cfg for SimpleConstruction
+	Note:  Due to changes in KIS, this is only compatible with 1.7 and later
+
+

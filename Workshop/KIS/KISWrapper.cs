@@ -20,7 +20,7 @@ namespace Workshop.W_KIS
 
         public static float GetPartVolume(AvailablePart part)
 		{
-            return _partUtilsImpl.GetPartVolume(part);
+            return (float)_partUtilsImpl.GetPartVolume(part);
 		}
 
 		internal static void Initialize() //Assembly kisAssembly)
@@ -126,7 +126,7 @@ namespace Workshop.W_KIS
 
 		public float GetContentVolume()
 		{
-            return _moduleKISInventory.totalContentsVolume;
+            return (float)_moduleKISInventory.totalContentsVolume;
 		}
 
 		public bool isFull()
