@@ -37,3 +37,8 @@ using System.Runtime.InteropServices;
 [assembly: KSPAssemblyDependency("KIS", 1, 2)]
 
 [assembly: KSPAssemblyDependency("ClickThroughBlocker", 1, 0)]
+[assembly: KSPAssemblyDependency("ToolbarController", 1, 0)]
+
+[assembly: KSPAssemblyDependency("KSP_ColorPicker", 1, 0)]
+[assembly: KSPAssemblyDependency("KSP_Log", 1, 0)]
+[assembly: KSPAssemblyDependency("KSP_PartHighlighter", 1, 0)]

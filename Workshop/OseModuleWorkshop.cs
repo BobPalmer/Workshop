@@ -15,9 +15,9 @@
 
     using ClickThroughFix;
 
-    public class OseModuleWorkshop : PartModule
+    public partial class OseModuleWorkshop : OseModuleHighlighter
     {
-        private const double kBackgroundProcessInterval = 3600f;
+        //private const double kBackgroundProcessInterval = 3600f;
 
         private static Version modVersion = Assembly.GetExecutingAssembly().GetName().Version;
 
@@ -38,7 +38,7 @@
         // GUI Properties
         private FilterBase[] _filters;
         private FilterSearch _searchFilter = new FilterSearch();
-        private Texture[] _filterTextures;
+        private GUIContent[] _filterTextures;
 
         private int _activeFilterId;
         private int _selectedFilterId;
@@ -90,6 +90,11 @@
         public string Status = "Online";
 
         [KSPField]
+        string Error = "";
+        [KSPField]
+        string LastError = "";
+
+        [KSPField]
         public string WorkAnimationName = "work";
 
         [KSPField(isPersistant = true)]
@@ -110,7 +115,7 @@
 
         protected Recipe workshopRecipe;
 
- 
+
 
         [KSPEvent(guiName = "Open OSE Workbench", guiActive = true, guiActiveEditor = false)]
         public void ContextMenuOpenWorkbench()
@@ -173,6 +178,7 @@
         WorkshopAnimateGeneric wag;
         WorkshopDamageController wdc;
 
+
         public override void OnStart(StartState state)
         {
             //Init the KAC Wrapper. KAC Wrapper courtey of TriggerAu
@@ -192,7 +198,7 @@
                     lastUpdateTime = Planetarium.GetUniversalTime();
                 GameEvents.onVesselChange.Add(OnVesselChange);
             }
-    
+
             foreach (PartModule p in this.part.Modules)
             {
                 if (p.moduleName == "WorkshopAnimateGeneric")
@@ -335,7 +341,7 @@
                         }
                     }
 
-                    if (kacAlarmIndex >= 0)    
+                    if (kacAlarmIndex >= 0)
                         KACWrapper.KAC.Alarms[kacAlarmIndex] = kacAlarm;
                 }
             }
@@ -411,7 +417,7 @@
         private void LoadFilters()
         {
             var filters = new List<FilterBase>();
-            var filterTextures = new List<Texture>();
+            var filterTextures = new List<GUIContent>();
             if (this.part.partInfo.partConfig == null)
                 return;
             ConfigNode[] nodes = this.part.partInfo.partConfig.GetNodes("MODULE");
@@ -446,65 +452,65 @@
             {
                 //Pods
                 filters.Add(new FilterCategory(PartCategories.Pods));
-                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/RDicon_commandmodules"));
+                filterTextures.Add(new GUIContent(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/RDicon_commandmodules"), "Command"));
 
                 //FuelTank
                 filters.Add(new FilterCategory(PartCategories.FuelTank));
-                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/RDicon_fuelSystems-advanced"));
+                filterTextures.Add(new GUIContent(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/RDicon_fuelSystems-advanced"), "Fuel Tanks"));
 
                 //Engine
                 filters.Add(new FilterCategory(PartCategories.Engine));
-                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/RDicon_propulsionSystems"));
+                filterTextures.Add(new GUIContent(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/RDicon_propulsionSystems"), "Engines"));
 
                 //Control
                 filters.Add(new FilterCategory(PartCategories.Control));
-                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_largecontrol"));
+                filterTextures.Add(new GUIContent(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_largecontrol"), "Control"));
 
                 //Structural
                 filters.Add(new FilterCategory(PartCategories.Structural));
-                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_generalconstruction"));
+                filterTextures.Add(new GUIContent(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_generalconstruction"), "Structural"));
 
                 //Aero
                 filters.Add(new FilterCategory(PartCategories.Aero));
-                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_advaerodynamics"));
+                filterTextures.Add(new GUIContent(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_advaerodynamics"), "Aero"));
 
                 //Utility
                 filters.Add(new FilterCategory(PartCategories.Utility));
-                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_generic"));
+                filterTextures.Add(new GUIContent(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_generic"), "Utility"));
 
                 //Electrical
                 filters.Add(new FilterCategory(PartCategories.Electrical));
-                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_electrics"));
+                filterTextures.Add(new GUIContent(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_electrics"), "Electrical"));
 
                 //Ground
                 filters.Add(new FilterCategory(PartCategories.Ground));
-                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_advancedmotors"));
+                filterTextures.Add(new GUIContent(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_advancedmotors"), "Ground"));
 
                 //Payload
                 filters.Add(new FilterCategory(PartCategories.Payload));
-                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_composites"));
+                filterTextures.Add(new GUIContent(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_composites"), "Payload"));
 
                 //Communications
                 filters.Add(new FilterCategory(PartCategories.Communication));
-                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_advunmanned"));
+                filterTextures.Add(new GUIContent(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_advunmanned"), "Communication"));
 
                 //Coupling
                 filters.Add(new FilterCategory(PartCategories.Coupling));
-                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/cs_size3"));
+                filterTextures.Add(new GUIContent(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/cs_size3"), "Coupling"));
 
                 //Thermal
                 filters.Add(new FilterCategory(PartCategories.Thermal));
-                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/fuels_monopropellant"));
+                filterTextures.Add(new GUIContent(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/fuels_monopropellant"), "Thermal"));
 
                 //Science
                 filters.Add(new FilterCategory(PartCategories.Science));
-                filterTextures.Add(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_advsciencetech"));
+                filterTextures.Add(new GUIContent(WorkshopUtils.LoadTexture("Squad/PartList/SimpleIcons/R&D_node_icon_advsciencetech"), "Science"));
 
                 if (HighLogic.CurrentGame.Parameters.CustomParams<Workshop_MiscSettings>().showMiscCategory)
                 {
                     //Misc (catchall for parts not in other categories)
                     filters.Add(new FilterCategory(PartCategories.none));
-                    filterTextures.Add(WorkshopUtils.LoadTexture("Workshop/Assets/Icons/Misc"));
+                    filterTextures.Add(new GUIContent(WorkshopUtils.LoadTexture("Workshop/Assets/Icons/Misc"), "Misc/None"));
                 }
             }
 
@@ -521,7 +527,7 @@
                     {
                         category = (PartCategories)Enum.Parse(typeof(PartCategories), node.GetValue("name"));
                         filters.Add(new FilterCategory(category));
-                        filterTextures.Add(WorkshopUtils.LoadTexture(node.GetValue("iconPath")));
+                        filterTextures.Add(new GUIContent(WorkshopUtils.LoadTexture(node.GetValue("iconPath")), node.GetValue("name")));
                     }
                     catch (Exception ex)
                     {
@@ -654,7 +660,7 @@
                 Events["ContextMenuOpenWorkbench"].guiName = "Close OSE Workbench";
             else
                 Events["ContextMenuOpenWorkbench"].guiName = "Open OSE Workbench";
- 
+
 
             if (HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().requireUnpacking || WorkshopUtils.PreLaunch())
             {
@@ -666,15 +672,15 @@
                         Events["ContextMenuOpenWorkbench"].guiActive = false;
                 }
             }
-            
+
             if (wag != null)
                 wag.Busy = (_processedItem != null);
 
-            if (wag != null && wag.packed)
+            if (wag != null && wag.packed && HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().requireUnpacking)
                 Status = "Packed";
             else
                 Status = "Online";
-            
+
             try
             {
                 UpdateProductivity();
@@ -702,7 +708,7 @@
                 while (elapsedTime > 0.1f) //kBackgroundProcessInterval)
                 {
                     timeRemaining = ProcessItem(elapsedTime);
-                    
+
                     if (_processedItem == null)
                         return;
                     if (elapsedTime == timeRemaining)
@@ -733,7 +739,6 @@
 
         private double ProcessItem(double deltaTime)
         {
-            Log.Info("Workshop.ProcessItem, deltaTime: " + deltaTime);
             double timeRemaining = deltaTime;
 
             if (manufacturingPaused)
@@ -742,7 +747,7 @@
                 return 0;
             }
 
-            if (progress >= 100)
+            if (progress >= 99.999f) // use 99.999 in case of any floating point issues
             {
                 FinishManufacturing();
                 timeRemaining -= 0.01f;
@@ -848,43 +853,77 @@
             //Determine the number of units of the resource to consume.
             var unitsToConsume = Math.Min(resourceToConsume.Units - resourceToConsume.Processed, deltaTime * adjustedProductivity / _processedBlueprint.Complexity);
             Log.Info("resourceToConsume: " + resourceToConsume.Name + ", unitsToConsume: " + unitsToConsume);
-            if (part.protoModuleCrew.Count < MinimumCrew)
+
+            notEnoughCrew = part.protoModuleCrew.Count < MinimumCrew;
+            notEnoughEC = AmountAvailable(this.part, UpkeepResource) < TimeWarp.deltaTime * UpkeepAmount;
+            notEnoughFunds = HighLogic.CurrentGame.Mode == Game.Modes.CAREER && WorkshopOptions.PrintingCostsFunds && Funding.Instance.Funds < _processedBlueprint.Funds;
+            notEnoughResources = AmountAvailable(this.part, resourceToConsume.Name) < unitsToConsume;
+
+            Error = "";
+            if (notEnoughCrew)
             {
                 Status = "Not enough Crew to operate";
-            }
-
-            else if (AmountAvailable(UpkeepResource) < TimeWarp.deltaTime * UpkeepAmount)
-            {
-                Status = "Not enough " + UpkeepResource;
-            }
-
-            else if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER && WorkshopOptions.PrintingCostsFunds && Funding.Instance.Funds < _processedBlueprint.Funds)
-            {
-                Status = "Not enough funds to process";
-            }
-
-            else if (AmountAvailable(resourceToConsume.Name) < unitsToConsume)
-            {
-                Status = "Not enough " + resourceToConsume.Name;
+                Error = Status;
             }
             else
             {
-                Status = "Printing " + _processedItem.Part.title;
-                if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER && WorkshopOptions.PrintingCostsFunds && _processedBlueprint.Funds > 0)
+                if (notEnoughEC)
                 {
-                    Funding.Instance.AddFunds(-_processedBlueprint.Funds, TransactionReasons.Vessels);
-                    _processedBlueprint.Funds = 0;
+                    Status = "Not enough " + UpkeepResource;
+                    Error = Status;
                 }
+
                 else
                 {
-                    _processedBlueprint.Funds = 0;
+                    if (notEnoughFunds)
+                    {
+                        Status = "Not enough funds to process";
+                        Error = Status;
+                    }
+
+                    else
+                    {
+                        if (notEnoughResources)
+                        {
+                            Status = "Not enough " + resourceToConsume.Name;
+                            Error = Status;
+                        }
+                        else
+                        {
+                            Status = "Printing " + _processedItem.Part.title;
+                            if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER && WorkshopOptions.PrintingCostsFunds && _processedBlueprint.Funds > 0)
+                            {
+                                Funding.Instance.AddFunds(-_processedBlueprint.Funds, TransactionReasons.Vessels);
+                                _processedBlueprint.Funds = 0;
+                            }
+                            else
+                            {
+                                _processedBlueprint.Funds = 0;
+                            }
+                            RequestResource(this.part, UpkeepResource, TimeWarp.deltaTime * UpkeepAmount);
+                            resourceToConsume.Processed += RequestResource(this.part, resourceToConsume.Name, unitsToConsume);
+                            progress = (float)(_processedBlueprint.GetProgress() * 100);
+                        }
+                    }
                 }
-                RequestResource(UpkeepResource, TimeWarp.deltaTime * UpkeepAmount);
-                resourceToConsume.Processed += RequestResource(resourceToConsume.Name, unitsToConsume);
-                progress = (float)(_processedBlueprint.GetProgress() * 100);
-                Log.Info("progress: " + progress);
             }
 
+            if (Error != "" && Error != LastError && HighLogic.CurrentGame.Parameters.CustomParams<Workshop_MiscSettings>().showPopup)
+            {
+                PopupDialog.SpawnPopupDialog(
+                     new MultiOptionDialog(
+                         "OseModuleWorkshopWarning",
+                         "Warning\n" + Error + "\n",
+                         this.part.partInfo.title,
+                         HighLogic.UISkin,
+                         CreateOptions()
+                     ),
+                     false,
+                     HighLogic.UISkin
+                 );
+
+            }
+            LastError = Error;
             //Return time remaining
             //return deltaTime - unitsToConsume;
 
@@ -893,8 +932,27 @@
             Log.Info("ExecuteManufacturing, returning : " + d);
             return d;
         }
+        private DialogGUIBase[] CreateOptions()
+        {
+            List<DialogGUIBase> options = new List<DialogGUIBase>();
+            if (!_showGui && FlightGlobals.ActiveVessel == this.vessel)
+                options.Add(new DialogGUIButton("Open Workshop", () => onConfirm()));
+            options.Add(new DialogGUIButton("Acknowledge", () => onAck()));
+            options.Add(new DialogGUIButton("Cancel", delegate { }));
+            return options.ToArray();
 
-        private double AmountAvailable(string resource)
+        }
+        Action onConfirm()
+        {
+            ContextMenuOpenWorkbench();
+            return null;
+        }
+        Action onAck()
+        {
+            AcknowledgeCondition();
+            return null;
+        }
+        internal static double AmountAvailable(Part part, string resource)
         {
             var res = PartResourceLibrary.Instance.GetDefinition(resource);
             double amount, maxAmount;
@@ -902,16 +960,17 @@
             return amount;
         }
 
-        private float RequestResource(string resource, double amount)
+        internal static float RequestResource(Part part, string resource, double amount)
         {
             var res = PartResourceLibrary.Instance.GetDefinition(resource);
-            return (float)this.part.RequestResource(res.id, amount);
+            return (float)part.RequestResource(res.id, amount);
         }
 
         private void FinishManufacturing()
         {
             var destinationInventory = AddToContainer(_processedItem);
-            if (destinationInventory != null)
+            notEnoughFreeSpace = destinationInventory == null;
+            if (!notEnoughFreeSpace)
             {
                 ScreenMessages.PostScreenMessage("3D Printing of " + _processedItem.Part.title + " finished.", 5, ScreenMessageStyle.UPPER_CENTER);
                 _processedItem.DisableIcon();
@@ -1021,11 +1080,22 @@
 
         // ReSharper disable once UnusedMember.Local => Unity3D
         // ReSharper disable once InconsistentNaming => Unity3D
+        string tooltip = "";
         void OnGUI()
         {
             if (_showGui)
             {
                 DrawWindow();
+
+                GUI.depth--;
+                if (HighLogic.CurrentGame.Parameters.CustomParams<Workshop_MiscSettings>().showTooltips && Event.current.type == EventType.Repaint && tooltip != "")
+                {
+                    var labelSize = GUI.skin.GetStyle("Label").CalcSize(new GUIContent(tooltip));
+                    if (tooltip.Length > 14)
+                        labelSize.y *= 2;
+                    GUI.Box(new Rect(Event.current.mousePosition.x - (25 + (labelSize.x / 2)), Event.current.mousePosition.y - 40, labelSize.x + 10, labelSize.y + 5), tooltip);
+                }
+
             }
         }
 
@@ -1074,14 +1144,13 @@
             if (!HighLogic.CurrentGame.Parameters.CustomParams<Workshop_MiscSettings>().useAlternateSkin)
                 _windowPos = ClickThruBlocker.GUIWindow(GetInstanceID(), _windowPos, DrawWindowContents, "Workbench (Max Volume: " + _maxVolume + " litres - " + _filters[_activeFilterId] + ")");
             else
-                _windowPos = ClickThruBlocker.GUIWindow(GetInstanceID(), _windowPos, DrawWindowContents, "Workbench (Max Volume:" + _maxVolume + " litres - " + _filters[_activeFilterId] + ")", window);
-
+                _windowPos = ClickThruBlocker.GUIWindow(GetInstanceID(), _windowPos, DrawWindowContents, "Workbench (Max Volume: " + _maxVolume + " litres - " + _filters[_activeFilterId] + ")", window);
         }
 
         private void DrawWindowContents(int windowId)
         {
-            _selectedFilterId = GUI.Toolbar(new Rect(15, 35, 615, 30), _selectedFilterId, _filterTextures);
 
+            _selectedFilterId = GUI.Toolbar(new Rect(15, 35, 615, 30), _selectedFilterId, _filterTextures);
             WorkshopItem mouseOverItem = null;
 
             mouseOverItem = DrawAvailableItems(mouseOverItem);
@@ -1094,6 +1163,10 @@
             {
                 ContextMenuOpenWorkbench();
             }
+
+            if (Event.current.type == EventType.Repaint)
+                tooltip = GUI.tooltip;
+
             GUI.DragWindow();
         }
 
@@ -1144,13 +1217,14 @@
             {
                 if (_confirmDelete)
                 {
-                    
+
                     _processedItem.DisableIcon();
                     _processedItem = null;
                     _processedBlueprint = null;
 
                     progress = 0;
                     manufacturingPaused = false;
+                    Clear();
                     Status = "Online";
 
                     if (Animate && _heatAnimation != null && _workAnimation != null)
@@ -1163,7 +1237,7 @@
                 else
                 {
                     _confirmDelete = true;
-                    ScreenMessages.PostScreenMessage("Click the cancel button again to confirm cancelling current production", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                    ScreenMessages.PostScreenMessage("Click the cancel button again to confirm canceling current production", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 }
             }
             GUI.enabled = true;
@@ -1190,7 +1264,7 @@
                         {
                             item.EnableIcon(64);
                         }
-                        if (GUI.Button(new Rect(left, top, 50, 50), item.Icon.texture))
+                        if (GUI.Button(new Rect(left, top, 50, 50), new GUIContent(item.Icon.texture, item.Part.partPrefab.partInfo.title)))
                         {
                             _queue.Add(new WorkshopItem(item.Part));
                         }
@@ -1274,7 +1348,7 @@
                 GUI.Box(new Rect(470, 80, 150, 100), blueprint.Print(WorkshopUtils.ProductivityType.printer, adjustedProductivity), UI.UIStyles.StatsStyle);
                 GUI.Box(new Rect(200, 190, 420, 25), mouseOverItem.Part.title, UI.UIStyles.TitleDescriptionStyle);
                 GUI.Box(new Rect(200, 220, 420, 110), mouseOverItem.Part.description, UI.UIStyles.TooltipDescriptionStyle);
-             }
+            }
         }
     }
 }

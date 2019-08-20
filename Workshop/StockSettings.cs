@@ -6,6 +6,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
+using KSPColorPicker;
+
 
 namespace Workshop
 {
@@ -16,8 +18,8 @@ namespace Workshop
         public override string Title { get { return "Difficulty"; } } // column heading
         public override GameParameters.GameMode GameMode { get { return GameParameters.GameMode.ANY; } }
         public override string Section { get { return "Workshop"; } }
-        public override string DisplaySection { get { return "Difficulty"; } }
-        public override int SectionOrder { get { return 2; } }
+        public override string DisplaySection { get { return "Workshop"; } }
+        public override int SectionOrder { get { return 1; } }
         public override bool HasPresets { get { return true; } }
 
         [GameParameters.CustomParameterUI("No local printing or recycling",
@@ -112,9 +114,12 @@ namespace Workshop
 
         public override bool Interactible(MemberInfo member, GameParameters parameters)
         {
-
+            if (KSP_ColorPicker.showPicker)
+            {
+                KSP_ColorPicker.colorPickerInstance.PingTime();
+                return false;
+            }
             return true;
-            //            return true; //otherwise return true
         }
 
         public override IList ValidValues(MemberInfo member)
@@ -133,8 +138,8 @@ namespace Workshop
         public override string Title { get { return "Misc"; } } // column heading
         public override GameParameters.GameMode GameMode { get { return GameParameters.GameMode.ANY; } }
         public override string Section { get { return "Workshop"; } }
-        public override string DisplaySection { get { return "Misc"; } }
-        public override int SectionOrder { get { return 3; } }
+        public override string DisplaySection { get { return "Workshop"; } }
+        public override int SectionOrder { get { return 2; } }
         public override bool HasPresets { get { return false; } }
 
         [GameParameters.CustomParameterUI("Use alternate skin")]
@@ -146,22 +151,72 @@ namespace Workshop
                       "use the category to prevent part from showing if they aren't 'real' parts (MechJeb, among others)")]
         public bool showMiscCategory = false;
 
+        [GameParameters.CustomParameterUI("Show tooltips")]
+        public bool showTooltips = true;
+
+
+        [GameParameters.CustomParameterUI("Display popup dialog when shortage ocurs",
+            toolTip = "Shortages can be Crew, EC, Funds, Resources, or Free Space")]
+        public bool showPopup = true;
+
+
+        [GameParameters.CustomStringParameterUI("Highlight Color Settings", autoPersistance = true, lines = 2, title = "Highlight Color Settings", toolTip = "test string tooltip")]
+        public string UIstring = "";
+
+        [GameParameters.CustomParameterUI("Highlight parts which have shortages",
+            toolTip = "Shortages can be Crew, EC, Funds, Resources, or Free Space")]
+        public bool doHighlighting = true;
+
+        [GameParameters.CustomParameterUI("Stop warp when shortage occurs",
+            toolTip = "Shortages can be Crew, EC, Funds, Resources, or Free Space")]
+        public bool stopWarp = true;
+
+
+        [GameParameters.CustomParameterUI("Show Color Picker",
+           toolTip = "Show the Color Picker dialog")]
+        public bool showColorPicker = false;
+
+        [GameParameters.CustomFloatParameterUI("Red value", minValue = 0, maxValue = 1f, stepCount = 101,displayFormat ="F4",
+            toolTip = "Amount of red to be used in the highlight. range is from 0-1")]
+        public float highlightRed = 1f;
+
+
+        [GameParameters.CustomFloatParameterUI("Green value", minValue = 0, maxValue = 1f, stepCount = 101, displayFormat = "F4",
+            toolTip = "Amount of green to be used in the highlight. range is from 0-1")]
+        public float highlightGreen = 0.01f;
+
+
+        [GameParameters.CustomFloatParameterUI("Blue value", minValue = 0, maxValue = 1f, stepCount = 101, displayFormat = "F4",
+            toolTip = "Amount of blue to be used in the highlight. range is from 0-1")]
+        public float highlightBlue = 0.1f;
+
+
 
         public override void SetDifficultyPreset(GameParameters.Preset preset)
         {
 
         }
 
-        public override bool Enabled(MemberInfo member, GameParameters parameters)
-        {
-            return true; //otherwise return true
-        }
-
+        bool unread = false;
         public override bool Interactible(MemberInfo member, GameParameters parameters)
         {
-
+            if (KSP_ColorPicker.showPicker)
+            {
+                unread = true;
+                KSP_ColorPicker.colorPickerInstance.PingTime();
+                return false;
+            }
+            else
+            {
+                if (KSP_ColorPicker.success && unread)
+                {
+                    unread = false;
+                    highlightBlue = (float)KSP_ColorPicker.SelectedColor.b;
+                    highlightGreen = (float)KSP_ColorPicker.SelectedColor.g;
+                    highlightRed = (float)KSP_ColorPicker.SelectedColor.r;
+                }
+            }
             return true;
-            //            return true; //otherwise return true
         }
 
         public override IList ValidValues(MemberInfo member)
@@ -169,5 +224,25 @@ namespace Workshop
             return null;
         }
 
+
+        public override bool Enabled(MemberInfo member, GameParameters parameters)
+        {
+
+            if (member.Name == "highlightRed" || member.Name == "highlightGreen" || member.Name == "highlightBlue") return false;
+
+            if (showColorPicker)
+            {
+                showColorPicker = false;
+                Color c = new Color(1, 1, 1, 1);
+                c.b = highlightBlue;
+                c.g = highlightGreen;
+                c.r = highlightRed;
+                KSP_ColorPicker.CreateColorPicker(c, false, "Colorpicker-Texture");
+            }
+            return true;
+        }
+
+
     }
+
 }

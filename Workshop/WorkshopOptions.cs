@@ -1,4 +1,8 @@
-﻿namespace Workshop
+﻿
+using System.Reflection;
+using KSPColorPicker;
+
+namespace Workshop
 {
     public class WorkshopOptions : GameParameters.CustomParameterNode
     {
@@ -20,47 +24,22 @@
         public override string DisplaySection => Section;
 
         public static bool EfficiencyEnabled
-        {
-            get
-            {
-                return HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>().enableEfficiency;
-            }
-        }
+        { get { return HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>().enableEfficiency; } }
 
         public static bool StupidityAffectsEfficiency
-        {
-            get
-            {
-                return HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>().stupidityAffectsEfficiency;
-            }
-        }
+        { get { return HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>().stupidityAffectsEfficiency; } }
 
         public static bool PrintingCostsFunds
-        {
-            get
-            {
-                return HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>().partsCostFunds;
-            }
-        }
+        { get { return HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>().partsCostFunds; } }
 
         public static bool EnableRecipes
-        {
-            get
-            {
-                return HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>().enableRecipes;
-            }
-        }
+        { get { return HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>().enableRecipes; } }
 
         public static bool EnableKACIntegration
-        {
-            get
-            {
-                return HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>().enableKACIntegration;
-            }
-        }
+        { get { return HighLogic.CurrentGame.Parameters.CustomParams<WorkshopOptions>().enableKACIntegration; } }
 
         #region CustomParameterNode
-        public override string Section =>"Workshop";
+        public override string Section => "Workshop";
 
         public override string Title => "Efficiency";
 
@@ -84,6 +63,19 @@
 
             return base.Enabled(member, parameters);
         }
+
+        public override bool Interactible(MemberInfo member, GameParameters parameters)
+        {
+            if (KSP_ColorPicker.showPicker)
+            {
+                KSP_ColorPicker.colorPickerInstance.PingTime();
+                return false;
+            }
+
+            return true;
+        }
+
+
         #endregion
     }
 }

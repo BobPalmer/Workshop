@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using KSP.UI.Screens;
 using UnityEngine;
+using KSP_Log;
 
 namespace Workshop
 {
@@ -12,6 +13,7 @@ namespace Workshop
         internal string SubCategoryTitle = "Workshop Items";
         internal string IconName = "R&D_node_icon_advmetalworks";
         const string CategoryButtonLocalizationId = "#autoLOC_453547"; // filter by function
+
 
         void Awake()
         {

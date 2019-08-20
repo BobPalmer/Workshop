@@ -109,3 +109,17 @@
 	Note:  Due to changes in KIS, this is only compatible with 1.7 and later
 
 
+1.2.11
+	Thanks to @zer0kerbal for this:
+		Breaking Ground patch
+		Majority of conversion to B9PartSwitch
+	Added recipies for GroundConstruction parts
+	Added highlighting of lab when error occurs
+	Added tooltips to top row of buttons in workshop
+	Added tooltips to part list
+	Adjusted progress completion from 100 to 99.999f, in both the workshop and recycler in case of any possible floating point errors
+**** Added ToolbarController as a dependency ****
+	Replaced LoadTexture code with the ToolbarController code
+	Replaced use of ResourceBroker in the recycler with the same calls in the Workshop
+	Added highlighting of recycler when error occurs
+	Added popup dialog when error occurs, gives option to open workshop if it isn't open

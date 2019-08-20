@@ -1,6 +1,7 @@
 ﻿namespace Workshop
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
 
     using UnityEngine;
@@ -8,17 +9,17 @@
     using W_KIS;
     using Recipes;
     using System.Text;
-
+    
     using ClickThroughFix;
 
-    public partial class OseModuleRecycler : PartModule
+    public partial class OseModuleRecycler : OseModuleHighlighter
     {
         private const double kBackgroundProcessInterval = 3600;
 
         private Blueprint _processedBlueprint;
         private WorkshopItem _processedItem;
 
-        private readonly ResourceBroker _broker;
+        //private readonly ResourceBroker _broker;
         private readonly WorkshopQueue _queue;
 
         // GUI Properties
@@ -69,6 +70,11 @@
         [KSPField(guiName = "Recycler Status", guiActive = true)]
         public string RecyclerStatus = "Online";
 
+        [KSPField]
+        string Error = "";
+        [KSPField]
+        string LastError = "";
+
         [KSPField(isPersistant = true)]
         public string KACAlarmID = string.Empty;
         KACWrapper.KACAPI.KACAlarm kacAlarm = null;
@@ -81,7 +87,7 @@
 
 
         [KSPEvent(guiActive = true, guiName = "Open Recycler")]
-        public void ContextMenuOnOpenRecycler()
+        public void ContextMenuOpenRecycler()
         {
             if (_showGui)
             {
@@ -118,7 +124,7 @@
         public OseModuleRecycler()
         {
             _queue = new WorkshopQueue();
-            _broker = new ResourceBroker();
+            //_broker = new ResourceBroker();
             _pauseTexture = WorkshopUtils.LoadTexture("Workshop/Assets/Icons/icon_pause");
             _playTexture = WorkshopUtils.LoadTexture("Workshop/Assets/Icons/icon_play");
             _binTexture = WorkshopUtils.LoadTexture("Workshop/Assets/Icons/icon_bin");
@@ -250,15 +256,14 @@
         {
             if (!HighLogic.LoadedSceneIsFlight)
                 return;
-
+            
             maxGeeForce = Math.Max(maxGeeForce, FlightGlobals.ActiveVessel.geeForce);
 
             if (_showGui)
-                Events["ContextMenuOnOpenRecycler"].guiName = "Close Recycler";
+                Events["ContextMenuOpenRecycler"].guiName = "Close Recycler";
             else
-                Events["ContextMenuOnOpenRecycler"].guiName = "Open Recycler";
-
-
+                Events["ContextMenuOpenRecycler"].guiName = "Open Recycler";
+            
             if (HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().requireUnpacking || WorkshopUtils.PreLaunch())
             {
                 if (wag != null)
@@ -272,16 +277,15 @@
             if (wag != null)
                 wag.Busy = (_processedItem != null);
 
-            if (wag != null && wag.packed)
+            if (wag != null && wag.packed && HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().requireUnpacking)
                 RecyclerStatus = "Packed";
             else
                 RecyclerStatus = "Online";
-
-   
-
+                        
             try
             {
                 UpdateProductivity();
+
                 if (HighLogic.CurrentGame.Parameters.CustomParams<Workshop_Settings>().setRecycleKAC)
                     updateKACAlarm();
 
@@ -291,7 +295,6 @@
                 {
                     lastUpdateTime = Planetarium.GetUniversalTime();
                     ProcessItem(TimeWarp.deltaTime);
-                    Log.Info("After ProcessItem 1");
                     return;
                 }
 
@@ -318,7 +321,6 @@
                 if (elapsedTime > 0f)
                 {
                     ProcessItem(elapsedTime);
-                    Log.Info("After ProcessItem 2");
                 }
 
             }
@@ -337,7 +339,7 @@
                 RecyclerStatus = "Paused";
                 return 0;
             }
-            if (progress >= 100)
+            if (progress >= 99.999f) // use 99.999f to catch any floating point errors
             {
                 FinishManufacturing();
                 timeRemaining -= 0.01f;
@@ -345,7 +347,6 @@
             if (_processedItem != null)
             {
                 timeRemaining = ExecuteRecycling(deltaTime);
-                Log.Info("After ExecuteRecycling");
             }
             else
             {
@@ -391,23 +392,47 @@
             var unitsToProduce = Math.Min(resourceToProduce.Units - resourceToProduce.Processed,
                                            deltaTime * adjustedProductivity);
             Log.Info("resourceToProduce: " + resourceToProduce.Name + ", unitsToProduce: " + unitsToProduce);
-            if (part.protoModuleCrew.Count < MinimumCrew)
+
+            notEnoughCrew = part.protoModuleCrew.Count < MinimumCrew;
+            notEnoughEC = OseModuleWorkshop.AmountAvailable(this.part, UpkeepResource) < TimeWarp.deltaTime * UpkeepAmount;
+
+            Error = "";
+            if (notEnoughCrew)
             {
                 RecyclerStatus = "Not enough Crew to operate";
+                Error = RecyclerStatus;
             }
-            else if (_broker.AmountAvailable(part, UpkeepResource, TimeWarp.deltaTime, ResourceFlowMode.ALL_VESSEL) < TimeWarp.deltaTime)
+            else if (notEnoughEC)
             {
                 RecyclerStatus = "Not enough " + UpkeepResource;
+                Error = RecyclerStatus;
             }
             else
             {
                 RecyclerStatus = "Recycling " + _processedItem.Part.title;
-                _broker.RequestResource(part, UpkeepResource, UpkeepAmount, TimeWarp.deltaTime, ResourceFlowMode.ALL_VESSEL);
+                OseModuleWorkshop.RequestResource(this.part, UpkeepResource, TimeWarp.deltaTime * UpkeepAmount);
+                //_broker.RequestResource(part, UpkeepResource, UpkeepAmount, TimeWarp.deltaTime, ResourceFlowMode.ALL_VESSEL);
 
                 resourceToProduce.Processed += unitsToProduce;
                 progress = (float)(_processedBlueprint.GetProgress() * 100);
                 Log.Info("progress: " + progress);
             }
+            if (Error != "" && Error != LastError && HighLogic.CurrentGame.Parameters.CustomParams<Workshop_MiscSettings>().showPopup)
+            {
+                PopupDialog.SpawnPopupDialog(
+                   new MultiOptionDialog(
+                       "OseModuleRecyclerWarning",
+                       "Warning\n" + Error + "\n",
+                       this.part.partInfo.title,
+                       HighLogic.UISkin,
+                       CreateOptions()
+                   ),
+                   false,
+                   HighLogic.UISkin
+               );
+
+            }
+            LastError = Error;
 
             //Return time remaining
             //return deltaTime - unitsToProduce;
@@ -417,12 +442,32 @@
             Log.Info("ExecuteRecycling, returning : " + d);
             return d;
         }
+        private DialogGUIBase[] CreateOptions()
+        {
+            List<DialogGUIBase> options = new List<DialogGUIBase>();
+            if (!_showGui && FlightGlobals.ActiveVessel == this.vessel)
+                options.Add(new DialogGUIButton("Open Recycler", () => onConfirm()));
 
+            options.Add(new DialogGUIButton("Acknowledge", () => onAck()));
+  
+
+            options.Add(new DialogGUIButton("Cancel", delegate { }));
+            return options.ToArray();
+
+        }
+        Action onConfirm()
+        {
+            ContextMenuOpenRecycler();
+            return null;
+        }
+        Action onAck()
+        {
+            AcknowledgeCondition();
+            return null;
+        }
         private void FinishManufacturing()
         {
             ScreenMessages.PostScreenMessage("Recycling of " + _processedItem.Part.title + " finished.", 5, ScreenMessageStyle.UPPER_CENTER);
-
-
             CleanupRecycler();
         }
 
@@ -462,7 +507,7 @@
         {
             if (_showGui)
             {
-                ContextMenuOnOpenRecycler();
+                ContextMenuOpenRecycler();
             }
             base.OnInactive();
         }
@@ -471,7 +516,7 @@
         {
             if (_showGui)
             {
-                ContextMenuOnOpenRecycler();
+                ContextMenuOpenRecycler();
             }
         }
 
@@ -552,7 +597,7 @@
 
             if (GUI.Button(new Rect(_windowPos.width - 25, 5, 20, 20), "X"))
             {
-                ContextMenuOnOpenRecycler();
+                ContextMenuOpenRecycler();
             }
 
             GUI.DragWindow();

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Text;
 using Workshop.Recipes;
+using ToolbarControl_NS;
+
 
 namespace Workshop
 {
@@ -99,6 +101,10 @@ namespace Workshop
 
         public static Texture2D LoadTexture(string path)
         {
+            Texture2D tex = new Texture2D(25,25) ;
+            ToolbarControl.LoadImageFromFile(ref tex, "GameData/" + path);
+            return tex;
+#if false
             var texture = GameDatabase.Instance.GetTexture(path, false);
             if (texture == null)
             {
@@ -106,6 +112,7 @@ namespace Workshop
                 return new Texture2D(25, 25);
             }
             return texture;
+#endif
         }
 
         public static string GetKisStats(AvailablePart part)
