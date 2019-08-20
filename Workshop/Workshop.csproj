@@ -52,15 +52,15 @@
     </Reference>
     <Reference Include="KSP_ColorPicker, Version=0.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>R:\KSP_1.7.3-GC-OSE\GameData\SpaceTuxLibrary\Plugins\KSP_ColorPicker.dll</HintPath>
+      <HintPath>R:\KSP_1.7.2_dev\GameData\SpaceTuxLibrary\Plugins\KSP_ColorPicker.dll</HintPath>
     </Reference>
     <Reference Include="KSP_Log, Version=0.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>R:\KSP_1.7.3-GC-OSE\GameData\SpaceTuxLibrary\Plugins\KSP_Log.dll</HintPath>
+      <HintPath>R:\KSP_1.7.2_dev\GameData\SpaceTuxLibrary\Plugins\KSP_Log.dll</HintPath>
     </Reference>
     <Reference Include="KSP_PartHighlighter, Version=0.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>R:\KSP_1.7.3-GC-OSE\GameData\SpaceTuxLibrary\Plugins\KSP_PartHighlighter.dll</HintPath>
+      <HintPath>R:\KSP_1.7.2_dev\GameData\SpaceTuxLibrary\Plugins\KSP_PartHighlighter.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
