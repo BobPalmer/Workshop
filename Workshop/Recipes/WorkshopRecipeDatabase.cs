@@ -113,7 +113,7 @@ namespace Workshop.Recipes
             }
             else
             {
-                WorkshopUtils.LogError($"No FactoryRecipeFound for {part.title}");
+                WorkshopUtils.LogError(string.Format("No FactoryRecipeFound for {0}", part.title));
                 return null;
             }
             var blueprint = new Blueprint();

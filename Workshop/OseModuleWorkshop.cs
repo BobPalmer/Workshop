@@ -163,14 +163,14 @@
         {
             var sb = new StringBuilder("<color=#8dffec>KIS Part Printing Workshop</color>");
 
-            sb.Append($"\nMinimum Crew: {MinimumCrew}");
-            sb.Append($"\nBase productivity factor: {ProductivityFactor:P0}");
-            sb.Append($"\nUse specialist bonus: ");
+            sb.Append("\nMinimum Crew: "); sb.Append(MinimumCrew);
+            sb.Append(string.Format("\nBase productivity factor: {0:P0}", ProductivityFactor));
+            sb.Append("\nUse specialist bonus: ");
             sb.Append(RUIutils.GetYesNoUIString(UseSpecializationBonus));
             if (UseSpecializationBonus)
             {
-                sb.Append($"\nSpecialist skill: {ExperienceEffect}");
-                sb.Append($"\nSpecialist bonus: {SpecialistEfficiencyFactor:P0} per level");
+                sb.Append("\nSpecialist skill: "); sb.Append(ExperienceEffect);
+                sb.Append(string.Format("\nSpecialist bonus: {0:P0} per level", SpecialistEfficiencyFactor));
             }
             return sb.ToString();
         }
@@ -624,7 +624,7 @@
             {
                 WorkshopUtils.LogError("Error while determing maximum volume of available inventories!", ex);
             }
-            WorkshopUtils.Log($"Max volume is: {_maxVolume} liters");
+            WorkshopUtils.Log(string.Format("Max volume is: {0} liters", _maxVolume));
         }
 
         public override void OnSave(ConfigNode node)

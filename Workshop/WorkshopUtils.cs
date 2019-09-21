@@ -138,16 +138,16 @@ namespace Workshop
 
         public static void Log(string message)
         {
-            Debug.Log($"[OSE] - {message}");
+            Debug.Log(string.Format("[OSE] - {0}", message));
         }
 
         public static void LogError(string message)
         {
-            Debug.LogError($"[OSE] - {message}");
+            Debug.LogError(string.Format("[OSE] - {0}", message));
         }
         public static void LogError(string message, Exception ex)
         {
-            Debug.LogError($"[OSE] - {message}");
+            Debug.LogError(string.Format("[OSE] - {0}", message));
             Debug.LogException(ex);
         }
 
