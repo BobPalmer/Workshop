@@ -607,8 +607,15 @@
             // AvailableItems
             const int ItemRows = 10;
             const int ItemColumns = 3;
-            var availableItems = KISWrapper.GetInventories(vessel).SelectMany(i => i.items).ToArray();
-            var maxPage = availableItems.Length / 30;
+            const int ItemsPerPage = ItemRows * ItemColumns;
+
+            var allItems = KISWrapper.GetInventories(vessel)
+                                    .SelectMany(i => i.items);
+            var maxPage = allItems.Count() / ItemsPerPage;
+            var availableItems = allItems
+                                    .Skip(_activePage * ItemsPerPage)
+                                    .Take(ItemsPerPage)
+                                    .ToArray();
 
             for (var y = 0; y < ItemRows; y++)
             {
