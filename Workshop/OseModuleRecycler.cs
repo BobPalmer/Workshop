@@ -78,7 +78,6 @@
         [KSPField(isPersistant = true)]
         public string KACAlarmID = string.Empty;
         KACWrapper.KACAPI.KACAlarm kacAlarm = null;
-        int kacAlarmIndex = -1;
 
         protected float adjustedProductivity = 1.0f;
 
