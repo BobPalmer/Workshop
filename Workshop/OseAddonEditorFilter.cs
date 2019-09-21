@@ -39,7 +39,7 @@ namespace Workshop
             var filter = PartCategorizer.Instance.filters.Find(f => f.button.categorydisplayName == CategoryButtonLocalizationId);
             if (filter == null)
             {
-                WorkshopUtils.LogError(string.Format("Cannot find 'Filter by function' button for category: {0}", SubCategoryTitle));
+                WorkshopUtils.LogError($"Cannot find 'Filter by function' button for category: {SubCategoryTitle}");
                 return;
             }
             PartCategorizer.AddCustomSubcategoryFilter(filter, SubCategoryTitle, SubCategoryTitle, icon, p => AvPartItems.Contains(p.name));
