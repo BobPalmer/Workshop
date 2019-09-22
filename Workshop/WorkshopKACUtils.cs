@@ -36,7 +36,6 @@ namespace Workshop
                 kacAlarm.AlarmMargin = 5.0f;
                 kacAlarm.Notes = part.vessel.vesselName + " completed recycling job.";
                 kacAlarm.VesselID = FlightGlobals.ActiveVessel.id.ToString();
-                KACWrapper.KAC.Alarms[kacAlarmIndex] = kacAlarm;
             }
             else
                 Log.Info("setKACAlarm, alarm not set");
@@ -44,7 +43,6 @@ namespace Workshop
 
         KACWrapper.KACAPI.KACAlarm getKACAlarm()
         {
-            kacAlarmIndex = -1;
             if (KACWrapper.AssemblyExists && KACWrapper.APIReady && !string.IsNullOrEmpty(KACAlarmID))
             {
                 int totalAlarms = KACWrapper.KAC.Alarms.Count;
@@ -52,7 +50,6 @@ namespace Workshop
                 {
                     if (KACWrapper.KAC.Alarms[index].ID == KACAlarmID)
                     {
-                        kacAlarmIndex = index;
                         return KACWrapper.KAC.Alarms[index];
                     }
                 }
@@ -101,12 +98,11 @@ namespace Workshop
                 {
                     for (int index = KACWrapper.KAC.Alarms.Count - 1; index >= 0; index--)
                     {
-                        kacAlarm = KACWrapper.KAC.Alarms[index];
+                        var alarm = KACWrapper.KAC.Alarms[index];
                         if (KACWrapper.KAC.Alarms[index].ID == KACAlarmID)
                         {
+                            kacAlarm = alarm;
                             kacAlarm.AlarmTime = Planetarium.GetUniversalTime() + totalRecycleTime;
-                            KACWrapper.KAC.Alarms[index] = kacAlarm;
-                            kacAlarmIndex = index;
                             return;
                         }
                     }
@@ -115,24 +111,7 @@ namespace Workshop
                 //Update the alarm
                 else
                 {
-
-
                     kacAlarm.AlarmTime = Planetarium.GetUniversalTime() + totalRecycleTime;
-                    if (kacAlarmIndex < 0 || kacAlarmIndex >= KACWrapper.KAC.Alarms.Count || KACWrapper.KAC.Alarms[kacAlarmIndex].ID != kacAlarm.ID)
-                    {
-                        kacAlarmIndex = -1;
-                        for (int index = KACWrapper.KAC.Alarms.Count - 1; index >= 0; index--)
-                        {
-                            kacAlarm = KACWrapper.KAC.Alarms[index];
-                            if (KACWrapper.KAC.Alarms[index].ID == kacAlarm.ID)
-                            {
-                                kacAlarmIndex = index;
-                                break;
-                            }
-                        }
-                    }
-                    if (kacAlarmIndex >= 0)
-                        KACWrapper.KAC.Alarms[kacAlarmIndex] = kacAlarm;
                 }
             }
         }
