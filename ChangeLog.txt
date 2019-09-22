@@ -123,3 +123,13 @@
 	Replaced use of ResourceBroker in the recycler with the same calls in the Workshop
 	Added highlighting of recycler when error occurs
 	Added popup dialog when error occurs, gives option to open workshop if it isn't open
+
+1.2.12
+	Thanks to @zer0kerbal for this:
+		final updates to B9textureswap configuarations
+		chose not to add ORE to containers because there isn't an icon/texture for Ore to be used on the tanks
+		removed CCK because Workshop has it hardcoded
+	Thanks to Github user @jd284:
+		fix recycler item paging
+		avoid manipulating KAC alarms by index
+		don't use overwrite kacAlarm in alarm search loops
