@@ -133,3 +133,7 @@
 		fix recycler item paging
 		avoid manipulating KAC alarms by index
 		don't use overwrite kacAlarm in alarm search loops
+
+1.2.12.1
+	Thanks to forum user @AccidentalDisasembly for this
+		Fixed missing closing curly brace in the file: GameData/Workshop/MM_Patches/_OSE_PartRecipes.cfg
