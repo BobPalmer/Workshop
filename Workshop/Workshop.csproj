@@ -41,6 +41,17 @@
     <Reference Include="$(KSPDIR)\KSP_x64_Data\Managed\UnityEngine*.dll">
       <Private>False</Private>
     </Reference>
+    <Reference Include="KSPDev_Utils.2.0">
+      <HintPath>R:\KSP_1.8.0_dev\GameData\KIS\Plugins\KSPDev_Utils.2.0.dll</HintPath>
+    </Reference>
+    <Reference Include="KSP_ColorPicker, Version=0.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>R:\KSP_1.8.0_dev\GameData\SpaceTuxLibrary\Plugins\KSP_ColorPicker.dll</HintPath>
+    </Reference>
+    <Reference Include="KSP_PartHighlighter, Version=0.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>R:\KSP_1.8.0_dev\GameData\SpaceTuxLibrary\Plugins\KSP_PartHighlighter.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="ClickThroughBlocker">
       <HintPath>$(KSPDIR)\GameData\000_ClickThroughBlocker\Plugins\ClickThroughBlocker.dll</HintPath>
@@ -48,21 +59,9 @@
     <Reference Include="KIS">
       <HintPath>$(KSPDIR)\GameData\KIS\Plugins\KIS.dll</HintPath>
     </Reference>
-    <Reference Include="KSPDev_Utils.1.2, Version=1.2.7031.33522, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(KSPDIR)\GameData\KSPDev\LogConsole\Plugins\KSPDev_Utils.1.2.dll</HintPath>
-    </Reference>
-    <Reference Include="KSP_ColorPicker, Version=0.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(KSPDIR)\GameData\SpaceTuxLibrary\Plugins\KSP_ColorPicker.dll</HintPath>
-    </Reference>
     <Reference Include="KSP_Log, Version=0.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(KSPDIR)\GameData\SpaceTuxLibrary\Plugins\KSP_Log.dll</HintPath>
-    </Reference>
-    <Reference Include="KSP_PartHighlighter, Version=0.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(KSPDIR)\GameData\SpaceTuxLibrary\Plugins\KSP_PartHighlighter.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
