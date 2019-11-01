@@ -9,20 +9,18 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Workshop</RootNamespace>
     <AssemblyName>Workshop</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>false</DebugSymbols>
-    <DebugType>none</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
@@ -32,63 +30,33 @@
     </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="$(KSPDIR)\KSP_x64_Data\Managed\Assembly*.dll">
-      <Private>False</Private>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\..\..\..\..\..\..\KSPDev131\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="$(KSPDIR)\KSP_x64_Data\Managed\UnityEngine*.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="ClickThroughBlocker">
-      <HintPath>$(KSPDIR)\GameData\000_ClickThroughBlocker\Plugins\ClickThroughBlocker.dll</HintPath>
-    </Reference>
-    <Reference Include="KIS">
-      <HintPath>$(KSPDIR)\GameData\KIS\Plugins\KIS.dll</HintPath>
-    </Reference>
-    <Reference Include="KSPDev_Utils.1.2, Version=1.2.7031.33522, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(KSPDIR)\GameData\KSPDev\LogConsole\Plugins\KSPDev_Utils.1.2.dll</HintPath>
-    </Reference>
-    <Reference Include="KSP_ColorPicker, Version=0.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(KSPDIR)\GameData\SpaceTuxLibrary\Plugins\KSP_ColorPicker.dll</HintPath>
-    </Reference>
-    <Reference Include="KSP_Log, Version=0.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(KSPDIR)\GameData\SpaceTuxLibrary\Plugins\KSP_Log.dll</HintPath>
-    </Reference>
-    <Reference Include="KSP_PartHighlighter, Version=0.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(KSPDIR)\GameData\SpaceTuxLibrary\Plugins\KSP_PartHighlighter.dll</HintPath>
+    <Reference Include="Assembly-UnityScript-firstpass">
+      <HintPath>..\..\..\..\..\..\..\KSPDev131\KSP_x64_Data\Managed\Assembly-UnityScript-firstpass.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="ToolbarControl">
-      <HintPath>$(KSPDIR)\GameData\001_ToolbarControl\Plugins\ToolbarControl.dll</HintPath>
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\..\..\..\..\..\KSPDev131\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>..\..\..\..\..\..\..\KSPDev131\KSP_x64_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyVersion.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>AssemblyVersion.tt</DependentUpon>
-    </Compile>
     <Compile Include="Factory\OseModuleZeroGravityResourceConverter.cs" />
     <Compile Include="FilterCategory.cs" />
     <Compile Include="FilterBase.cs" />
     <Compile Include="FilterResult.cs" />
     <Compile Include="FilterSearch.cs" />
-    <Compile Include="InstallChecker.cs" />
     <Compile Include="KACWrapper.cs" />
     <Compile Include="KIS\KISWrapper.cs" />
     <Compile Include="Limit.cs" />
     <Compile Include="Clock.cs" />
-    <Compile Include="Log.cs" />
-    <Compile Include="OseModuleCategoryAddon.cs" />
-    <Compile Include="OseModuleCategoryAddonEqualityComparer.cs" />
     <Compile Include="OseModuleInventoryPreference.cs" />
     <Compile Include="OseModuleRecycler.cs" />
     <Compile Include="Recipes\Blueprint.cs" />
@@ -97,14 +65,9 @@
     <Compile Include="Recipes\WorkshopRecipeDatabase.cs" />
     <Compile Include="Recipes\WorkshopRecipeLoader.cs" />
     <Compile Include="Recipes\WorkshopResource.cs" />
-    <Compile Include="StockSettings.cs" />
     <Compile Include="UI\UIStyles.cs" />
-    <Compile Include="OseModuleHighlighter.cs" />
-    <Compile Include="WorkshopAnimateGeneric.cs" />
     <Compile Include="WorkshopBlacklistItemsDatabase.cs" />
     <Compile Include="WorkshopBlacklistItemsLoader.cs" />
-    <Compile Include="WorkshopDamageController.cs" />
-    <Compile Include="WorkshopKACUtils.cs" />
     <Compile Include="WorkshopOptions.cs" />
     <Compile Include="WorkshopSettings.cs" />
     <Compile Include="WorkshopStyles.cs" />
@@ -116,52 +79,23 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WorkshopUtils.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="AssemblyVersion.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>AssemblyVersion.cs</LastGenOutput>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>
-
-
-
-start /D D:\Users\jbb\github\Workshop /WAIT deploy.bat  $(TargetDir) $(TargetFileName)
-
-
-
-
-
-
-if $(ConfigurationName) == Release (
-
-
-
-
-
-	start /D D:\Users\jbb\github\Workshop /WAIT buildRelease.bat $(TargetDir) $(TargetFileName)
-
-
-
-
-
-)</PostBuildEvent>
+    <PostBuildEvent>copy "$(TargetDir)Workshop.dll"  "$(SolutionDir)\..\..\GameData\Workshop\Plugins" /Y
+(robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP\GameData\Workshop"   /E /V) 
+(robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP en\GameData\Workshop"   /E /V) 
+(robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP es\GameData\Workshop"   /E /V) 
+(robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP ru\GameData\Workshop"   /E /V) 
+(robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP jp\GameData\Workshop"   /E /V) 
+(robocopy "$(SolutionDir)\..\..\GameData\Workshop" "$(SolutionDir)\..\..\..\KSP zh\GameData\Workshop"   /E /V) ^&amp;amp;amp; exit 0</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>
-
-set textTemplatingPath="%25ProgramFiles(x86)%25\Microsoft Visual Studio\2017\Community\Common7\IDE\texttransform.exe"
-
-
-
-
-
-%25textTemplatingPath%25 "$(ProjectDir)AssemblyVersion.tt</PreBuildEvent>
+    <PreBuildEvent>rd /s /q "$(SolutionDir)\..\..\..\KSP\GameData\Workshop"
+rd /s /q "$(SolutionDir)\..\..\..\KSP en\GameData\Workshop"
+rd /s /q "$(SolutionDir)\..\..\..\KSP es\GameData\Workshop"
+rd /s /q "$(SolutionDir)\..\..\..\KSP ja\GameData\Workshop"
+rd /s /q "$(SolutionDir)\..\..\..\KSP zh\GameData\Workshop"
+rd /s /q "$(SolutionDir)\..\..\..\KSP ru\GameData\Workshop"</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

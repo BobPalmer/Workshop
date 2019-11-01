@@ -137,3 +137,7 @@
 1.2.12.1
 	Thanks to forum user @AccidentalDisasembly for this
 		Fixed missing closing curly brace in the file: GameData/Workshop/MM_Patches/_OSE_PartRecipes.cfg
+
+1.2.13
+	Added InstallChecker
+	Updated for KSP 1.8
