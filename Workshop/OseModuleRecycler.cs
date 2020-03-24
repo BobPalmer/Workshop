@@ -165,7 +165,7 @@
             else
             {
                 Fields["RecyclerStatus"].guiActive = false;
-                Events["ContextMenuOnOpenRecycler"].guiActive = false;
+                Events["ContextMenuOpenRecycler"].guiActive = false;
             }
 
 
@@ -268,9 +268,9 @@
                 if (wag != null)
                 {
                     if (!wag.packed && !wag.Packing)
-                        Events["ContextMenuOnOpenRecycler"].guiActive = true; // (_processedItem == null);
+                        Events["ContextMenuOpenRecycler"].guiActive = true; // (_processedItem == null);
                     else
-                        Events["ContextMenuOnOpenRecycler"].guiActive = false;
+                        Events["ContextMenuOpenRecycler"].guiActive = false;
                 }
             }
             if (wag != null)
