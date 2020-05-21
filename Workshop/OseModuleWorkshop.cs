@@ -554,7 +554,7 @@
             WorkshopUtils.LogVerbose(PartLoader.LoadedPartsList.Count(WorkshopUtils.PartResearched) + " unlocked parts");
 
             var items = new List<WorkshopItem>();
-            foreach (var loadedPart in PartLoader.LoadedPartsList.Where(p => p.name != "flag" && !p.name.StartsWith("kerbalEVA")))
+            foreach (var loadedPart in PartLoader.LoadedPartsList.Where(p => p.name != "flag" && !p.name.StartsWith("kerbalEVA") && !(p.name == "maleEVA") && !(p.name == "femaleEVA")))
             {
                 try
                 {

@@ -144,3 +144,10 @@
 
 1.2.14
 	Fixed bad event name in the recycler code which was causng endless nullrefs
+
+1.2.14.1
+	Added code to check for the new kerbalEVA parts
+    
+1.2.14.2
+    Fixed URL in .version file
+	
