@@ -41,6 +41,10 @@
     <Reference Include="$(KSPDIR)\KSP_x64_Data\Managed\UnityEngine*.dll">
       <Private>False</Private>
     </Reference>
+    <Reference Include="KSPDev_Utils.2.1, Version=2.1.7279.39857, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>R:\KSP_1.8.1_dev\GameData\KSPDev\LogConsole\Plugins\KSPDev_Utils.2.1.dll</HintPath>
+    </Reference>
     <Reference Include="KSP_ColorPicker, Version=0.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>R:\KSP_1.8.0_dev\GameData\SpaceTuxLibrary\Plugins\KSP_ColorPicker.dll</HintPath>
