@@ -151,3 +151,6 @@
 1.2.14.2
     Fixed URL in .version file
 	
+1.2.14.3
+	Thanks to github user @peter-sibiro for this fix:
+		Fix integration with WildBlueIndustries Pathfinder mod.
