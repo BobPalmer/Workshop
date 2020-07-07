@@ -329,8 +329,12 @@ namespace Workshop.W_KIS
 				{
 					if (module.moduleName == "ModuleKISInventory")
 					{
-						inventories.Add(new ModuleKISInventory(module));
-					}
+                        if (module is KIS.ModuleKISInventory) {
+                            inventories.Add(new ModuleKISInventory(module));
+                        } else {
+                            WorkshopUtils.LogError(module.name + " is not KIS.ModuleKISInventory, but " + module.ClassName + " instead. Skipping");
+                        }
+                    }
 				}
 			}
 			return inventories;
@@ -344,7 +348,11 @@ namespace Workshop.W_KIS
             {
                 if (module.moduleName == "ModuleKISInventory")
                 {
-                    inventories.Add(new ModuleKISInventory(module));
+                    if (module is KIS.ModuleKISInventory) {
+                        inventories.Add(new ModuleKISInventory(module));
+                    } else {
+                        WorkshopUtils.LogError(module.name + " is not KIS.ModuleKISInventory, but " + module.ClassName + " instead. Skipping");
+                    }
                 }
             }
             
